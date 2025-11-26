@@ -1,19 +1,35 @@
 package tutul.ex.QarzMukti.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "roles")
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Role {
-
+    
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
-
-    @Column(nullable = false, unique = true)
+    
+    @Column(name = "name", unique = true, nullable = false, length = 50)
     private String name;
+    
+    @Column(name = "description")
+    private String description;
+    
+    @Column(name = "created_at")
+    private OffsetDateTime createdAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        createdAt = OffsetDateTime.now();
+    }
 }
