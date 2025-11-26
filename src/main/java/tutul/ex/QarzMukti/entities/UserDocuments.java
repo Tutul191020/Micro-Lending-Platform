@@ -19,9 +19,8 @@ public class UserDocuments {
     @GeneratedValue(generator = "UUID")
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
-    
-    @Column(name = "user_id", unique = true, nullable = false)
-    private UUID userId;
+
+    private Long userId;
     
     @Column(name = "national_id_document_path")
     private String nationalIdDocumentPath;

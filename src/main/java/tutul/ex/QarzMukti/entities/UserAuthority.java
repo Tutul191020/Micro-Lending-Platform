@@ -20,13 +20,13 @@ public class UserAuthority {
     private UUID id;
     
     @Column(name = "user_id", nullable = false)
-    private UUID userId;
+    private Long userId;
     
     @Column(name = "authority_id", nullable = false)
     private Integer authorityId;
     
     @Column(name = "assigned_by")
-    private UUID assignedBy;
+    private Long assignedBy;
     
     @Column(name = "assigned_at")
     private OffsetDateTime assignedAt;

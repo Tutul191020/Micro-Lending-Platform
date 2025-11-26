@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.Set;
-import java.util.UUID;
 
 @Data
 @Builder
@@ -16,7 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class UserVerificationRequest {
     @NotNull(message = "User ID is required")
-    private UUID userId;
+    private Long userId;
     
     @NotBlank(message = "Verification status is required")
     @Pattern(regexp = "^(APPROVED|REJECTED)$", message = "Status must be APPROVED or REJECTED")

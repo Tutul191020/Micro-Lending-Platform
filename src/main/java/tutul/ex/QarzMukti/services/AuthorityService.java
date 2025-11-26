@@ -36,7 +36,7 @@ public class AuthorityService {
      * Create a new authority (SUPER_USER only)
      */
     @Transactional
-    public AuthorityResponse createAuthority(UUID superUserId, AuthorityRequest request) {
+    public AuthorityResponse createAuthority(Long superUserId, AuthorityRequest request) {
         log.info("Creating new authority: {} by super user: {}", request.getName(), superUserId);
 
         validateSuperUser(superUserId);
@@ -102,7 +102,7 @@ public class AuthorityService {
      * Update authority (SUPER_USER only)
      */
     @Transactional
-    public AuthorityResponse updateAuthority(UUID superUserId, Integer authorityId, AuthorityRequest request) {
+    public AuthorityResponse updateAuthority(Long superUserId, Integer authorityId, AuthorityRequest request) {
         log.info("Updating authority: {} by super user: {}", authorityId, superUserId);
 
         validateSuperUser(superUserId);
@@ -129,7 +129,7 @@ public class AuthorityService {
      * Delete authority (SUPER_USER only)
      */
     @Transactional
-    public void deleteAuthority(UUID superUserId, Integer authorityId) {
+    public void deleteAuthority(Long superUserId, Integer authorityId) {
         log.info("Deleting authority: {} by super user: {}", authorityId, superUserId);
 
         validateSuperUser(superUserId);
@@ -154,7 +154,7 @@ public class AuthorityService {
      * Assign authorities to role (SUPER_USER only)
      */
     @Transactional
-    public void assignAuthoritiesToRole(UUID superUserId, RoleAuthorityAssignmentRequest request) {
+    public void assignAuthoritiesToRole(Long superUserId, RoleAuthorityAssignmentRequest request) {
         log.info("Assigning authorities to role: {} by super user: {}", request.getRoleId(), superUserId);
 
         validateSuperUser(superUserId);
@@ -191,7 +191,7 @@ public class AuthorityService {
      * Get all authorities for a user (from roles + direct assignments)
      */
     @Transactional(readOnly = true)
-    public Set<AuthorityResponse> getAllUserAuthorities(UUID userId) {
+    public Set<AuthorityResponse> getAllUserAuthorities(Long userId) {
         return userAuthorityRepository.findAllUserAuthorities(userId).stream()
                 .map(this::mapToAuthorityResponse)
                 .collect(Collectors.toSet());
@@ -201,7 +201,7 @@ public class AuthorityService {
      * Check if user has specific authority
      */
     @Transactional(readOnly = true)
-    public boolean userHasAuthority(UUID userId, String authorityName) {
+    public boolean userHasAuthority(Long userId, String authorityName) {
         Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(userId);
         return authorities.stream()
                 .anyMatch(authority -> authority.getName().equals(authorityName));
@@ -214,7 +214,7 @@ public class AuthorityService {
                 .orElseThrow(() -> new ResourceNotFoundException("Authority not found: " + authorityId));
     }
 
-    private void validateSuperUser(UUID userId) {
+    private void validateSuperUser(Long userId) {
         Set<Role> roles = userRoleRepository.findRolesByUserId(userId);
         boolean isSuperUser = roles.stream()
                 .anyMatch(role -> "SUPER_USER".equals(role.getName()));

@@ -2,8 +2,8 @@ package tutul.ex.QarzMukti.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.OffsetDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "roles")
@@ -24,7 +24,12 @@ public class Role {
     
     @Column(name = "description")
     private String description;
-    
+
+    @OneToMany
+    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private Set<UserRole> userRoles;
+
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
     

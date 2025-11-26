@@ -16,25 +16,21 @@ import java.util.UUID;
 public interface UserAuthorityRepository extends JpaRepository<UserAuthority, UUID> {
 
     @Query("SELECT a FROM Authority a JOIN UserAuthority ua ON a.id = ua.authorityId WHERE ua.userId = :userId")
-    Set<Authority> findAuthoritiesByUserId(@Param("userId") UUID userId);
+    Set<Authority> findAuthoritiesByUserId(@Param("userId") Long userId);
 
     @Query("SELECT u FROM User u JOIN UserAuthority ua ON u.id = ua.userId WHERE ua.authorityId = :authorityId")
     List<User> findUsersByAuthorityId(@Param("authorityId") Integer authorityId);
 
-    boolean existsByUserIdAndAuthorityId(UUID userId, Integer authorityId);
+    boolean existsByUserIdAndAuthorityId(Long userId, Integer authorityId);
 
-    void deleteByUserId(UUID userId);
+    void deleteByUserId(Long userId);
 
-    void deleteByUserIdAndAuthorityId(UUID userId, Integer authorityId);
+    void deleteByUserIdAndAuthorityId(Long userId, Integer authorityId);
 
     long countByAuthorityId(Integer authorityId);
 
-    long countByUserId(UUID userId);
+    long countByUserId(Long userId);
 
-    @Query("SELECT DISTINCT a FROM Authority a " +
-            "WHERE a.id IN (SELECT ua.authorityId FROM UserAuthority ua WHERE ua.userId = :userId) " +
-            "OR a.id IN (SELECT ra.authorityId FROM RoleAuthority ra " +
-            "            JOIN UserRole ur ON ra.roleId = ur.roleId " +
-            "            WHERE ur.userId = :userId)")
-    Set<Authority> findAllUserAuthorities(@Param("userId") UUID userId);
+    @Query("SELECT a FROM Authority a JOIN UserAuthority ua ON a.id = ua.authorityId WHERE ua.userId = :userId")
+    Set<Authority> findAllUserAuthorities(@Param("userId") Long userId);
 }

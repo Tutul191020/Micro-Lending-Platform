@@ -34,7 +34,7 @@ public class AuthorityController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<AuthorityResponse>> createAuthority(
-            @RequestHeader("X-User-Id") UUID superUserId,
+            @RequestHeader("X-User-Id") Long superUserId,
             @Valid @RequestBody AuthorityRequest request) {
         log.info("REST: Create authority request from SUPER_USER: {}", superUserId);
         
@@ -107,7 +107,7 @@ public class AuthorityController {
      */
     @PutMapping("/{authorityId}")
     public ResponseEntity<ApiResponse<AuthorityResponse>> updateAuthority(
-            @RequestHeader("X-User-Id") UUID superUserId,
+            @RequestHeader("X-User-Id") Long superUserId,
             @PathVariable @NotNull Integer authorityId,
             @Valid @RequestBody AuthorityRequest request) {
         log.info("REST: Update authority request from SUPER_USER: {}", superUserId);
@@ -124,7 +124,7 @@ public class AuthorityController {
      */
     @DeleteMapping("/{authorityId}")
     public ResponseEntity<ApiResponse<Void>> deleteAuthority(
-            @RequestHeader("X-User-Id") UUID superUserId,
+            @RequestHeader("X-User-Id") Long superUserId,
             @PathVariable @NotNull Integer authorityId) {
         log.info("REST: Delete authority request from SUPER_USER: {}", superUserId);
         
@@ -140,7 +140,7 @@ public class AuthorityController {
      */
     @PutMapping("/assign-to-role")
     public ResponseEntity<ApiResponse<Void>> assignAuthoritiesToRole(
-            @RequestHeader("X-User-Id") UUID superUserId,
+            @RequestHeader("X-User-Id") Long superUserId,
             @Valid @RequestBody RoleAuthorityAssignmentRequest request) {
         log.info("REST: Assign authorities to role request from SUPER_USER: {}", superUserId);
         
@@ -170,7 +170,7 @@ public class AuthorityController {
      */
     @GetMapping("/user/{userId}")
     public ResponseEntity<ApiResponse<Set<AuthorityResponse>>> getAllUserAuthorities(
-            @PathVariable @NotNull UUID userId) {
+            @PathVariable @NotNull Long userId) {
         log.info("REST: Get all authorities for user: {}", userId);
         
         Set<AuthorityResponse> response = authorityService.getAllUserAuthorities(userId);
@@ -185,7 +185,7 @@ public class AuthorityController {
      */
     @GetMapping("/user/{userId}/has/{authorityName}")
     public ResponseEntity<ApiResponse<Boolean>> userHasAuthority(
-            @PathVariable @NotNull UUID userId,
+            @PathVariable @NotNull Long userId,
             @PathVariable String authorityName) {
         log.info("REST: Check if user {} has authority: {}", userId, authorityName);
         

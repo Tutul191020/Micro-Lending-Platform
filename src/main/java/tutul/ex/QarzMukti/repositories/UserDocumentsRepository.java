@@ -9,10 +9,11 @@ import java.util.UUID;
 
 @Repository
 public interface UserDocumentsRepository extends JpaRepository<UserDocuments, UUID> {
-    
-    Optional<UserDocuments> findByUserId(UUID userId);
-    
-    boolean existsByUserId(UUID userId);
-    
-    void deleteByUserId(UUID userId);
+
+    Optional<UserDocuments> findByUserId(Long userId);
+
+    boolean existsByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
+
 }

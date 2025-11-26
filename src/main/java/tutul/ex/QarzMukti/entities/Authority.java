@@ -12,29 +12,28 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 public class Authority {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Integer id;
-    
-    @Column(name = "name", unique = true, nullable = false, length = 100)
-    private String name; // e.g., USER:CREATE, LOAN:APPROVE
-    
-    @Column(name = "description", nullable = false)
+
+    @Column(unique = true, nullable = false, length = 100)
+    private String name;
+
+    @Column(nullable = false)
     private String description;
-    
-    @Column(name = "resource", nullable = false, length = 50)
-    private String resource; // e.g., USER, LOAN, FUND
-    
-    @Column(name = "action", nullable = false, length = 50)
-    private String action; // e.g., CREATE, READ, UPDATE, DELETE, APPROVE
-    
-    @Column(name = "created_at", nullable = false)
+
+    @Column(nullable = false, length = 50)
+    private String resource;
+
+    @Column(nullable = false, length = 50)
+    private String action;
+
+    @Column(nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE DEFAULT now()")
     private OffsetDateTime createdAt;
-    
+
     @PrePersist
     protected void onCreate() {
-        createdAt = OffsetDateTime.now();
+        if (createdAt == null) createdAt = OffsetDateTime.now();
     }
 }

@@ -16,7 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class UserAuthorityAssignmentRequest {
     @NotNull(message = "User ID is required")
-    private UUID userId;
+    private Long userId;
 
     @NotEmpty(message = "At least one authority is required")
     private Set<String> authorityNames;

@@ -26,7 +26,7 @@ public class RoleAuthority {
     private Integer authorityId;
     
     @Column(name = "assigned_by")
-    private UUID assignedBy;
+    private Long assignedBy;
     
     @Column(name = "assigned_at")
     private OffsetDateTime assignedAt;

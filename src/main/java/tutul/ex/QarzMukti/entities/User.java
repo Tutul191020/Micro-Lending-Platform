@@ -2,10 +2,11 @@ package tutul.ex.QarzMukti.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.UUID;
-
 @Entity
 @Table(name = "users")
 @Getter
@@ -16,9 +17,8 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(generator = "UUID")
-    @Column(name = "id", updatable = false, nullable = false)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "username", unique = true, nullable = false, length = 50)
     private String username;
@@ -62,25 +62,16 @@ public class User {
     @Column(name = "verification_comments")
     private String verificationComments;
 
-    @Column(name = "verified_by")
-    private UUID verifiedBy;
+    private String verifiedBy;
 
     @Column(name = "verified_at")
     private OffsetDateTime verifiedAt;
 
-    @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
+    @Column(updatable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @UpdateTimestamp
     private OffsetDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = OffsetDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = OffsetDateTime.now();
-    }
 }

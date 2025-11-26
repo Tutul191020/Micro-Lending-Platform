@@ -7,32 +7,29 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "user_roles")
-@Getter
-@Setter
+@Getter @Setter  @AllArgsConstructor @Builder
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class UserRole {
-    
+
     @Id
-    @GeneratedValue(generator = "UUID")
-    @Column(name = "id", updatable = false, nullable = false)
+    @GeneratedValue
     private UUID id;
-    
+
     @Column(name = "user_id", nullable = false)
-    private UUID userId;
-    
+    private Long userId;                    // ← Changed to Long
+
     @Column(name = "role_id", nullable = false)
     private Integer roleId;
-    
-    @Column(name = "assigned_by")
-    private UUID assignedBy;
-    
-    @Column(name = "assigned_at")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", insertable = false, updatable = false)
+    private Role role;
+
+    private Long assignedBy;
     private OffsetDateTime assignedAt;
-    
+
     @PrePersist
-    protected void onCreate() {
-        assignedAt = OffsetDateTime.now();
+    void onCreate() {
+        this.assignedAt = OffsetDateTime.now();
     }
 }

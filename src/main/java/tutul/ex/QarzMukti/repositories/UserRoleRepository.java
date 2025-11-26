@@ -14,23 +14,25 @@ import java.util.UUID;
 
 @Repository
 public interface UserRoleRepository extends JpaRepository<UserRole, UUID> {
-    
+
+    List<UserRole> findByUserId(Long userId);
+
+    void deleteByUserId(Long userId);
+
     @Query("SELECT r FROM Role r JOIN UserRole ur ON r.id = ur.roleId WHERE ur.userId = :userId")
-    Set<Role> findRolesByUserId(@Param("userId") UUID userId);
-    
+    Set<Role> findRolesByUserId(@Param("userId") Long userId);
+
     @Query("SELECT u FROM User u JOIN UserRole ur ON u.id = ur.userId WHERE ur.roleId = :roleId")
     List<User> findUsersByRoleId(@Param("roleId") Integer roleId);
-    
-    boolean existsByUserIdAndRoleId(UUID userId, Integer roleId);
-    
-    void deleteByUserId(UUID userId);
-    
-    void deleteByUserIdAndRoleId(UUID userId, Integer roleId);
-    
+
+    boolean existsByUserIdAndRoleId(Long userId, Integer roleId);
+
+    void deleteByUserIdAndRoleId(Long userId, Integer roleId);
+
     long countByRoleId(Integer roleId);
-    
-    long countByUserId(UUID userId);
-    
+
+    long countByUserId(Long userId);
+
     @Query("SELECT COUNT(ur) FROM UserRole ur WHERE ur.userId = :userId")
-    long countUserRoles(@Param("userId") UUID userId);
+    long countUserRoles(@Param("userId") Long userId);
 }
