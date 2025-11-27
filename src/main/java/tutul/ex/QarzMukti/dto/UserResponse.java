@@ -7,14 +7,13 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.Set;
-import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
-    private UUID id;
+    private Long id;
     private String username;
     private String fullName;
     private String email;
@@ -27,6 +26,9 @@ public class UserResponse {
     private Boolean enabled;
     private Boolean verified;
     private String verificationStatus;
+    private String verificationComments;
+    private String verifiedBy;
+    private OffsetDateTime verifiedAt;
     private Set<RoleResponse> roles;
     private Set<AuthorityResponse> authorities;
     private UserDocumentsResponse documents;

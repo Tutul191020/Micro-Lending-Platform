@@ -1,137 +1,90 @@
 package tutul.ex.QarzMukti.controllers;
 
-
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import tutul.ex.QarzMukti.constants.ApiEndpoints;
 import tutul.ex.QarzMukti.dto.ApiResponse;
 import tutul.ex.QarzMukti.dto.RoleRequest;
 import tutul.ex.QarzMukti.dto.RoleResponse;
 import tutul.ex.QarzMukti.services.RoleService;
+
 import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/roles")
 @RequiredArgsConstructor
 @Validated
 public class RoleController {
 
     private final RoleService roleService;
 
-    /**
-     * Create a new role
-     * POST /api/roles
-     */
-    @PostMapping
-    public ResponseEntity<ApiResponse<RoleResponse>> createRole(
-            @Valid @RequestBody RoleRequest request) {
-        log.info("REST: Create role request received: {}", request.getName());
-        
+    @PostMapping(ApiEndpoints.Roles.BASE)
+    public ResponseEntity<ApiResponse<RoleResponse>> createRole(@Valid @RequestBody RoleRequest request) {
+        log.info("Creating new role: {}", request.getName());
         RoleResponse response = roleService.createRole(request);
-        
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Role created successfully"));
+        log.info("Role created successfully - roleId: {}, name: {}", response.getId(), response.getName());
+        return new ResponseEntity<>(ApiResponse.success(response, "Role created successfully"), HttpStatus.CREATED);
     }
 
-    /**
-     * Get role by ID
-     * GET /api/roles/{roleId}
-     */
-    @GetMapping("/{roleId}")
-    public ResponseEntity<ApiResponse<RoleResponse>> getRoleById(
-            @PathVariable @NotNull Integer roleId) {
-        log.info("REST: Get role by ID: {}", roleId);
-        
+    @GetMapping(ApiEndpoints.Roles.BY_ID)
+    public ResponseEntity<ApiResponse<RoleResponse>> getRoleById(@PathVariable Integer roleId) {
+        log.info("Fetching role by roleId: {}", roleId);
         RoleResponse response = roleService.getRoleById(roleId);
-        
-        return ResponseEntity.ok(ApiResponse.success(response, "Role retrieved successfully"));
+        return new ResponseEntity<>(ApiResponse.success(response, "Role retrieved successfully"), HttpStatus.OK);
     }
 
-    /**
-     * Get role by name
-     * GET /api/roles/name/{name}
-     */
-    @GetMapping("/name/{name}")
+    @GetMapping(ApiEndpoints.Roles.BY_NAME)
     public ResponseEntity<ApiResponse<RoleResponse>> getRoleByName(@PathVariable String name) {
-        log.info("REST: Get role by name: {}", name);
-        
+        log.info("Fetching role by name: {}", name);
         RoleResponse response = roleService.getRoleByName(name);
-        
-        return ResponseEntity.ok(ApiResponse.success(response, "Role retrieved successfully"));
+        return new ResponseEntity<>(ApiResponse.success(response, "Role retrieved successfully"), HttpStatus.OK);
     }
 
-    /**
-     * Get all roles
-     * GET /api/roles
-     */
-    @GetMapping
+    @GetMapping(ApiEndpoints.Roles.BASE)
     public ResponseEntity<ApiResponse<List<RoleResponse>>> getAllRoles() {
-        log.info("REST: Get all roles request received");
-        
+        log.info("Fetching all roles");
         List<RoleResponse> response = roleService.getAllRoles();
-        
-        return ResponseEntity.ok(ApiResponse.success(response, "Roles retrieved successfully"));
+        log.info("Found {} roles", response.size());
+        return new ResponseEntity<>(ApiResponse.success(response, "Roles retrieved successfully"), HttpStatus.OK);
     }
 
-    /**
-     * Update role
-     * PUT /api/roles/{roleId}
-     */
-    @PutMapping("/{roleId}")
+    @PutMapping(ApiEndpoints.Roles.BY_ID)
     public ResponseEntity<ApiResponse<RoleResponse>> updateRole(
-            @PathVariable @NotNull Integer roleId,
+            @PathVariable Integer roleId,
             @Valid @RequestBody RoleRequest request) {
-        log.info("REST: Update role request received for ID: {}", roleId);
-        
+        log.info("Updating role - roleId: {}, newName: {}", roleId, request.getName());
         RoleResponse response = roleService.updateRole(roleId, request);
-        
-        return ResponseEntity.ok(ApiResponse.success(response, "Role updated successfully"));
+        log.info("Role updated successfully - roleId: {}", roleId);
+        return new ResponseEntity<>(ApiResponse.success(response, "Role updated successfully"), HttpStatus.OK);
     }
 
-    /**
-     * Delete role
-     * DELETE /api/roles/{roleId}
-     */
-    @DeleteMapping("/{roleId}")
-    public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable @NotNull Integer roleId) {
-        log.info("REST: Delete role request received for ID: {}", roleId);
-        
+    @DeleteMapping(ApiEndpoints.Roles.BY_ID)
+    public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable Integer roleId) {
+        log.info("Deleting role - roleId: {}", roleId);
         roleService.deleteRole(roleId);
-        
-        return ResponseEntity.ok(ApiResponse.success(null, "Role deleted successfully"));
+        log.info("Role deleted successfully - roleId: {}", roleId);
+        return new ResponseEntity<>(ApiResponse.success(null, "Role deleted successfully"), HttpStatus.OK);
     }
 
-    /**
-     * Check if role exists
-     * GET /api/roles/exists/{name}
-     */
-    @GetMapping("/exists/{name}")
+    @GetMapping(ApiEndpoints.Roles.EXISTS)
     public ResponseEntity<ApiResponse<Boolean>> roleExists(@PathVariable String name) {
-        log.info("REST: Check role exists: {}", name);
-        
+        log.info("Checking if role exists: {}", name);
         boolean exists = roleService.roleExists(name);
-        
-        return ResponseEntity.ok(ApiResponse.success(exists, 
-                exists ? "Role exists" : "Role does not exist"));
+        log.info("Role {} existence check result: {}", name, exists);
+        return new ResponseEntity<>(ApiResponse.success(exists, exists ? "Role exists" : "Role does not exist"),
+                HttpStatus.OK);
     }
 
-    /**
-     * Get user count for role
-     * GET /api/roles/{roleId}/user-count
-     */
-    @GetMapping("/{roleId}/user-count")
-    public ResponseEntity<ApiResponse<Long>> getUserCountByRole(
-            @PathVariable @NotNull Integer roleId) {
-        log.info("REST: Get user count for role: {}", roleId);
-        
+    @GetMapping(ApiEndpoints.Roles.USER_COUNT)
+    public ResponseEntity<ApiResponse<Long>> getUserCountByRole(@PathVariable Integer roleId) {
+        log.info("Fetching user count for roleId: {}", roleId);
         long count = roleService.getUserCountByRole(roleId);
-        
-        return ResponseEntity.ok(ApiResponse.success(count, "User count retrieved successfully"));
+        log.info("Role {} has {} users", roleId, count);
+        return new ResponseEntity<>(ApiResponse.success(count, "User count retrieved successfully"), HttpStatus.OK);
     }
 }
