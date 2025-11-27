@@ -34,7 +34,6 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
 
-
     @Transactional
     public UserResponse registerUser(UserRegistrationRequest request) {
         log.info("Registering new user: {}", request.getUsername());
@@ -183,7 +182,6 @@ public class UserService {
         log.info("User verification completed: {} with status: {}", user.getId(), request.getStatus());
         return mapToUserResponse(user, roles, authorities, documents);
     }
-
 
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long userId) {
@@ -419,6 +417,7 @@ public class UserService {
     private UserResponse mapToUserResponse(User user, Set<Role> roles, Set<Authority> authorities,
             UserDocuments documents) {
         return UserResponse.builder()
+                .id(user.getId())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
