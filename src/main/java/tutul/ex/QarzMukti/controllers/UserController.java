@@ -39,11 +39,11 @@ public class UserController {
 
     @PutMapping(ApiEndpoints.Users.VERIFY)
     public ResponseEntity<ApiResponse<UserResponse>> verifyUser(
-            @RequestHeader("X-User-Id") Long superUserId,
+            @RequestHeader("X-User-Id") String superUserId,
             @Valid @RequestBody UserVerificationRequest request) {
         log.info("User verification request - superUserId: {}, targetUserId: {}, status: {}", superUserId,
                 request.getUserId(), request.getStatus());
-        UserResponse response = userService.verifyUser(String.valueOf(superUserId), request);
+        UserResponse response = userService.verifyUser((superUserId), request);
         log.info("User {} verification completed with status: {}", request.getUserId(), request.getStatus());
         return new ResponseEntity<>(
                 ApiResponse.success(response, "User verification completed: " + request.getStatus()), HttpStatus.OK);

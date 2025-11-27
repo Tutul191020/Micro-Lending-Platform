@@ -153,7 +153,7 @@ public class UserService {
         if ("APPROVED".equals(request.getStatus())) {
             user.setVerified(true);
             user.setVerificationStatus("APPROVED");
-            user.setVerifiedBy(superUserId.toString());
+            user.setVerifiedBy(superUserId);
             user.setVerifiedAt(OffsetDateTime.now());
             user.setVerificationComments(request.getComments());
 
@@ -166,7 +166,7 @@ public class UserService {
         } else if ("REJECTED".equals(request.getStatus())) {
             user.setVerified(false);
             user.setVerificationStatus("REJECTED");
-            user.setVerifiedBy(superUserId.toString());
+            user.setVerifiedBy(superUserId);
             user.setVerifiedAt(OffsetDateTime.now());
             user.setVerificationComments(request.getComments());
             user.setEnabled(false); // Disable rejected users
@@ -175,7 +175,7 @@ public class UserService {
         user.setUpdatedAt(OffsetDateTime.now());
         user = userRepository.save(user);
 
-        Set<Role> roles = userRoleRepository.findRolesByUserId(Long.valueOf(user.getId().toString()));
+        Set<Role> roles = userRoleRepository.findRolesByUserId(user.getId());
         Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(user.getId());
         UserDocuments documents = userDocumentsRepository.findByUserId(user.getId()).orElse(null);
 
@@ -186,8 +186,8 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long userId) {
         User user = findUserOrThrow(String.valueOf((userId)));
-        Set<Role> roles = userRoleRepository.findRolesByUserId(Long.valueOf((userId)));
-        Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(Long.valueOf(userId));
+        Set<Role> roles = userRoleRepository.findRolesByUserId((userId));
+        Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(userId);
         UserDocuments documents = userDocumentsRepository.findByUserId(userId).orElse(null);
         return mapToUserResponse(user, roles, authorities, documents);
     }
@@ -421,22 +421,9 @@ public class UserService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
-                .phone(user.getPhone())
-                .nationalId(user.getNationalId())
                 .dateOfBirth(user.getDateOfBirth())
-                .address(user.getAddress())
-                .city(user.getCity())
-                .postalCode(user.getPostalCode())
                 .enabled(user.getEnabled())
-                .verified(user.getVerified())
                 .verificationStatus(user.getVerificationStatus())
-                .roles(roles.stream()
-                        .map(role -> RoleResponse.builder()
-                                .id(role.getId())
-                                .name(role.getName())
-                                .description(role.getDescription())
-                                .build())
-                        .collect(Collectors.toSet()))
                 .authorities(authorities.stream()
                         .map(authority -> AuthorityResponse.builder()
                                 .id(authority.getId())
@@ -447,16 +434,8 @@ public class UserService {
                                 .createdAt(authority.getCreatedAt())
                                 .build())
                         .collect(Collectors.toSet()))
-                .documents(documents != null ? UserDocumentsResponse.builder()
-                        .nationalIdDocumentPath(documents.getNationalIdDocumentPath())
-                        .electricityBillDocumentPath(documents.getElectricityBillDocumentPath())
-                        .profilePhotoPath(documents.getProfilePhotoPath())
-                        .nationalIdUploadedAt(documents.getNationalIdUploadedAt())
-                        .electricityBillUploadedAt(documents.getElectricityBillUploadedAt())
-                        .profilePhotoUploadedAt(documents.getProfilePhotoUploadedAt())
-                        .build() : null)
+
                 .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
                 .build();
     }
 
@@ -469,10 +448,6 @@ public class UserService {
                 .enabled(user.getEnabled())
                 .verified(user.getVerified())
                 .verificationStatus(user.getVerificationStatus())
-                .roleNames(roles.stream()
-                        .map(Role::getName)
-                        .collect(Collectors.toSet()))
-                .createdAt(user.getCreatedAt())
                 .build();
     }
 }

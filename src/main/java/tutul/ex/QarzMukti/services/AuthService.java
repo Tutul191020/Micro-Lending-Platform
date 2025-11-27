@@ -80,20 +80,11 @@ public class AuthService {
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
-                .phone(user.getPhone())
-                .nationalId(user.getNationalId())
                 .dateOfBirth(user.getDateOfBirth())
-                .address(user.getAddress())
-                .city(user.getCity())
-                .postalCode(user.getPostalCode())
                 .enabled(user.getEnabled())
-                .verified(user.getVerified())
                 .verificationStatus(user.getVerificationStatus())
-                .verificationComments(user.getVerificationComments())
                 .verifiedBy(user.getVerifiedBy())
-                .verifiedAt(user.getVerifiedAt())
                 .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
                 .build();
     }
 }

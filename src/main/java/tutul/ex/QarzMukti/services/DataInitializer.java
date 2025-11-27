@@ -300,6 +300,7 @@ public class DataInitializer {
             if (changed) {
                 userRepository.save(superAdmin);
                 log.info("Updated Super Admin email");
+                System.err.println("Updated Super Admin email");
             }
         }
 

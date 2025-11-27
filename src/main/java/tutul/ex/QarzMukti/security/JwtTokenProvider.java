@@ -30,6 +30,7 @@ public class JwtTokenProvider {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
         java.util.Map<String, Object> claims = new java.util.HashMap<>();
+        assert userDetails != null;
         claims.put("id", userDetails.getUser().getId());
         claims.put("username", userDetails.getUsername());
         claims.put("fullName", userDetails.getUser().getFullName());
