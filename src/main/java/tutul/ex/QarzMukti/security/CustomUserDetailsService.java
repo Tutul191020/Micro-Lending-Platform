@@ -10,13 +10,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tutul.ex.QarzMukti.entities.User;
-import tutul.ex.QarzMukti.entities.UserRole;
-import tutul.ex.QarzMukti.entities.UserAuthority;
 import tutul.ex.QarzMukti.repositories.UserRepository;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,12 +24,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        log.debug("Loading user by username: {}", username);
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+        log.debug("Loading user by username or email: {}", usernameOrEmail);
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        "User not found with username: " + username));
+        // Try to find by username first, then by email
+        User user = userRepository.findByUsername(usernameOrEmail)
+                .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
+                        .orElseThrow(() -> new UsernameNotFoundException(
+                                "User not found with username or email: " + usernameOrEmail)));
 
         // Check if user is enabled and verified
         if (!user.getEnabled()) {
@@ -45,15 +44,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         Set<GrantedAuthority> authorities = getAuthorities(user);
 
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getUsername())
-                .password(user.getPasswordHash())
-                .authorities(authorities)
-                .accountExpired(false)
-                .accountLocked(!user.getEnabled())
-                .credentialsExpired(false)
-                .disabled(!user.getEnabled())
-                .build();
+        return new CustomUserDetails(user, authorities);
     }
 
     /**

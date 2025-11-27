@@ -6,14 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.stream.Collectors;
-
 
 @Slf4j
 @Component
@@ -29,17 +27,28 @@ public class JwtTokenProvider {
      * Generate JWT token from Authentication object.
      */
     public String generateToken(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        return generateTokenFromUsername(userDetails.getUsername(), userDetails.getAuthorities()
-                .stream()
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        java.util.Map<String, Object> claims = new java.util.HashMap<>();
+        claims.put("id", userDetails.getUser().getId());
+        claims.put("username", userDetails.getUsername());
+        claims.put("fullName", userDetails.getUser().getFullName());
+        claims.put("email", userDetails.getUser().getEmail());
+        claims.put("phone", userDetails.getUser().getPhone());
+
+        // Add roles
+        java.util.List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toList());
+        claims.put("roles", roles);
+
+        return generateTokenFromUsername(userDetails.getUsername(), claims);
     }
 
     /**
-     * Generate JWT token from username and authorities.
+     * Generate JWT token from username and claims.
      */
-    public String generateTokenFromUsername(String username, java.util.List<String> authorities) {
+    public String generateTokenFromUsername(String username, java.util.Map<String, Object> claims) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
@@ -47,7 +56,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .subject(username)
-                .claim("authorities", authorities)
+                .claims(claims)
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(key)

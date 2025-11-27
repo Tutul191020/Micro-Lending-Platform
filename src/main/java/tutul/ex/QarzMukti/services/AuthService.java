@@ -38,35 +38,36 @@ public class AuthService {
      */
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
-        log.info("Login attempt for username: {}", request.getUsername());
+        String loginIdentifier = request.getUsername();
+        if (loginIdentifier == null || loginIdentifier.isEmpty()) {
+            loginIdentifier = request.getEmail();
+        }
+
+        if (loginIdentifier == null || loginIdentifier.isEmpty()) {
+            throw new UnauthorizedException("Username or Email is required");
+        }
+
+        log.info("Login attempt for: {}", loginIdentifier);
 
         try {
             // Authenticate user
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getUsername(),
+                            loginIdentifier,
                             request.getPassword()));
 
             // Generate JWT token
             String token = tokenProvider.generateToken(authentication);
 
-            // Get user details
-            User user = userRepository.findByUsername(request.getUsername())
-                    .orElseThrow(() -> new UnauthorizedException("User not found"));
-
-            // Convert to UserResponse
-            UserResponse userResponse = convertToUserResponse(user);
-
-            log.info("User {} logged in successfully", request.getUsername());
+            log.info("User {} logged in successfully", loginIdentifier);
 
             return LoginResponse.of(
                     token,
-                    tokenProvider.getExpirationInSeconds(),
-                    userResponse);
+                    tokenProvider.getExpirationInSeconds());
 
         } catch (AuthenticationException e) {
-            log.error("Authentication failed for username: {}", request.getUsername());
-            throw new UnauthorizedException("Invalid username or password");
+            log.error("Authentication failed for: {}", loginIdentifier);
+            throw new UnauthorizedException("Invalid username/email or password");
         }
     }
 

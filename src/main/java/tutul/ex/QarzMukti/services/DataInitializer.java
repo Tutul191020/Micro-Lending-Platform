@@ -264,7 +264,7 @@ public class DataInitializer {
                     .username(superAdminUsername)
                     .passwordHash(passwordEncoder.encode("Password@101"))
                     .fullName("Super Administrator")
-                    .email("superadmin@qarzmukti.com")
+                    .email("admin@qarzmukti.dev")
                     .phone("01700000000")
                     .nationalId("0000000000")
                     .dateOfBirth(LocalDate.of(1990, 1, 1))

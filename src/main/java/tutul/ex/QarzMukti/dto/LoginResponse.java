@@ -21,17 +21,14 @@ public class LoginResponse {
 
     private Long expiresIn; // in seconds
 
-    private UserResponse user;
-
     /**
      * Creates a login response with Bearer token type.
      */
-    public static LoginResponse of(String accessToken, Long expiresIn, UserResponse user) {
+    public static LoginResponse of(String accessToken, Long expiresIn) {
         return LoginResponse.builder()
                 .accessToken(accessToken)
                 .tokenType("Bearer")
                 .expiresIn(expiresIn)
-                .user(user)
                 .build();
     }
 }
