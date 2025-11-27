@@ -3,6 +3,8 @@ package tutul.ex.QarzMukti.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +16,7 @@ import tutul.ex.QarzMukti.common.ValidationException;
 import tutul.ex.QarzMukti.dto.*;
 import tutul.ex.QarzMukti.entities.*;
 import tutul.ex.QarzMukti.repositories.*;
+import tutul.ex.QarzMukti.security.CustomUserDetails;
 import tutul.ex.QarzMukti.specifications.UserSpecification;
 
 import java.time.OffsetDateTime;
@@ -138,35 +141,33 @@ public class UserService {
     }
 
     /**
-     * Verify/Approve user by SUPER_USER
+     * Verify/Approve user (requires USER:VERIFY authority)
      * Can assign roles during approval
      */
     @Transactional
-    public UserResponse verifyUser(String superUserId, UserVerificationRequest request) {
-        log.info("Verifying user: {} by super user: {}", request.getUserId(), superUserId);
-
-        // Validate super user has SUPER_USER role
-        validateSuperUser(Long.valueOf((superUserId)));
+    public UserResponse verifyUser(UserVerificationRequest request) {
+        Long authenticatedUserId = getCurrentAuthenticatedUserId();
+        log.info("Verifying user: {} by authenticated user: {}", request.getUserId(), authenticatedUserId);
 
         User user = findUserOrThrow(String.valueOf(request.getUserId()));
 
         if ("APPROVED".equals(request.getStatus())) {
             user.setVerified(true);
             user.setVerificationStatus("APPROVED");
-            user.setVerifiedBy(superUserId);
+            user.setVerifiedBy(authenticatedUserId);
             user.setVerifiedAt(OffsetDateTime.now());
             user.setVerificationComments(request.getComments());
 
             // Assign roles if provided
             if (request.getAssignedRoleNames() != null && !request.getAssignedRoleNames().isEmpty()) {
                 Set<Role> roles = validateAndFetchRoles(request.getAssignedRoleNames());
-                assignRolesToUser(user, roles, Long.valueOf((superUserId)));
+                assignRolesToUser(user, roles, authenticatedUserId);
             }
 
         } else if ("REJECTED".equals(request.getStatus())) {
             user.setVerified(false);
             user.setVerificationStatus("REJECTED");
-            user.setVerifiedBy(superUserId);
+            user.setVerifiedBy(authenticatedUserId);
             user.setVerifiedAt(OffsetDateTime.now());
             user.setVerificationComments(request.getComments());
             user.setEnabled(false); // Disable rejected users
@@ -257,13 +258,14 @@ public class UserService {
     }
 
     /**
-     * Assign roles to user by SUPER_USER (replaces existing roles)
+     * Assign roles to user (requires USER:ASSIGN_ROLE authority, replaces existing
+     * roles)
      */
     @Transactional
-    public UserResponse assignRolesBySuperUser(Long superUserId, Long userId, Set<String> roleNames) {
-        log.info("Assigning roles to user: {} by super user: {}", userId, superUserId);
+    public UserResponse assignRolesBySuperUser(Long userId, Set<String> roleNames) {
+        Long authenticatedUserId = getCurrentAuthenticatedUserId();
+        log.info("Assigning roles to user: {} by authenticated user: {}", userId, authenticatedUserId);
 
-        validateSuperUser(superUserId);
         User user = findUserOrThrow(String.valueOf(userId));
         Set<Role> roles = validateAndFetchRoles(roleNames);
 
@@ -271,7 +273,7 @@ public class UserService {
         userRoleRepository.deleteByUserId(userId);
 
         // Assign new roles
-        assignRolesToUser(user, roles, superUserId);
+        assignRolesToUser(user, roles, authenticatedUserId);
 
         Set<Role> updatedRoles = userRoleRepository.findRolesByUserId(userId);
         Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(userId);
@@ -282,13 +284,14 @@ public class UserService {
     }
 
     /**
-     * Assign authorities directly to user by SUPER_USER
+     * Assign authorities directly to user (requires USER:ASSIGN_ROLE authority)
      */
     @Transactional
-    public UserResponse assignAuthoritiesToUser(Long superUserId, UserAuthorityAssignmentRequest request) {
-        log.info("Assigning authorities to user: {} by super user: {}", request.getUserId(), superUserId);
+    public UserResponse assignAuthoritiesToUser(UserAuthorityAssignmentRequest request) {
+        Long authenticatedUserId = getCurrentAuthenticatedUserId();
+        log.info("Assigning authorities to user: {} by authenticated user: {}", request.getUserId(),
+                authenticatedUserId);
 
-        validateSuperUser(superUserId);
         User user = findUserOrThrow(String.valueOf(request.getUserId()));
         Set<Authority> authorities = validateAndFetchAuthorities(request.getAuthorityNames());
 
@@ -300,7 +303,7 @@ public class UserService {
             UserAuthority userAuthority = UserAuthority.builder()
                     .userId(user.getId())
                     .authorityId(authority.getId())
-                    .assignedBy((superUserId))
+                    .assignedBy(authenticatedUserId)
                     .assignedAt(OffsetDateTime.now())
                     .build();
             userAuthorityRepository.save(userAuthority);
@@ -353,6 +356,23 @@ public class UserService {
 
     // ============= Helper Methods =============
 
+    /**
+     * Get the current authenticated user's ID from Spring Security context
+     */
+    private Long getCurrentAuthenticatedUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ForbiddenException("No authenticated user found");
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails) {
+            return ((CustomUserDetails) principal).getUser().getId();
+        }
+
+        throw new ForbiddenException("Invalid authentication principal");
+    }
+
     private User findUserOrThrow(String userId) {
         return userRepository.findById(Long.valueOf(userId))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
@@ -367,16 +387,6 @@ public class UserService {
         }
         if (userRepository.existsByNationalId(request.getNationalId())) {
             throw new DuplicateResourceException("National ID already exists: " + request.getNationalId());
-        }
-    }
-
-    private void validateSuperUser(Long userId) {
-        Set<Role> roles = userRoleRepository.findRolesByUserId((userId));
-        boolean isSuperUser = roles.stream()
-                .anyMatch(role -> "SUPER_USER".equals(role.getName()));
-
-        if (!isSuperUser) {
-            throw new ForbiddenException("Only SUPER_USER can perform this operation");
         }
     }
 
@@ -441,6 +451,7 @@ public class UserService {
 
     private UserListResponse mapToUserListResponse(User user, Set<Role> roles) {
         return UserListResponse.builder()
+                .id(user.getId())
                 .username(user.getUsername())
                 .fullName(user.getFullName())
                 .email(user.getEmail())

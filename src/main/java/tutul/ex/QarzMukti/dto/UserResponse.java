@@ -20,7 +20,7 @@ public class UserResponse {
     private LocalDate dateOfBirth;
     private Boolean enabled;
     private String verificationStatus;
-    private String verifiedBy;
+    private Long verifiedBy;
     private Set<AuthorityResponse> authorities;
     private OffsetDateTime createdAt;
 

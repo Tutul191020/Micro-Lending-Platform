@@ -6,10 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Request DTO for user login.
- * Contains credentials required for authentication.
- */
 @Data
 @Builder
 @NoArgsConstructor

@@ -38,12 +38,12 @@ public class UserController {
     }
 
     @PutMapping(ApiEndpoints.Users.VERIFY)
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('USER:VERIFY')")
     public ResponseEntity<ApiResponse<UserResponse>> verifyUser(
-            @RequestHeader("X-User-Id") String superUserId,
             @Valid @RequestBody UserVerificationRequest request) {
-        log.info("User verification request - superUserId: {}, targetUserId: {}, status: {}", superUserId,
+        log.info("User verification request - targetUserId: {}, status: {}",
                 request.getUserId(), request.getStatus());
-        UserResponse response = userService.verifyUser((superUserId), request);
+        UserResponse response = userService.verifyUser(request);
         log.info("User {} verification completed with status: {}", request.getUserId(), request.getStatus());
         return new ResponseEntity<>(
                 ApiResponse.success(response, "User verification completed: " + request.getStatus()), HttpStatus.OK);
@@ -86,23 +86,23 @@ public class UserController {
     }
 
     @PutMapping(ApiEndpoints.Users.ASSIGN_ROLES)
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('USER:ASSIGN_ROLE')")
     public ResponseEntity<ApiResponse<UserResponse>> assignRoles(
-            @RequestHeader("X-User-Id") Long superUserId,
             @PathVariable Long userId,
             @RequestBody Set<String> roleNames) {
-        log.info("Role assignment request - superUserId: {}, targetUserId: {}, roles: {}", superUserId, userId,
+        log.info("Role assignment request - targetUserId: {}, roles: {}", userId,
                 roleNames);
-        UserResponse response = userService.assignRolesBySuperUser(superUserId, userId, roleNames);
+        UserResponse response = userService.assignRolesBySuperUser(userId, roleNames);
         log.info("Roles assigned successfully to userId: {}", userId);
         return new ResponseEntity<>(ApiResponse.success(response, "Roles assigned successfully"), HttpStatus.OK);
     }
 
     @PutMapping(ApiEndpoints.Users.ASSIGN_AUTHORITIES)
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('USER:ASSIGN_ROLE')")
     public ResponseEntity<ApiResponse<UserResponse>> assignAuthorities(
-            @RequestHeader("X-User-Id") Long superUserId,
             @Valid @RequestBody UserAuthorityAssignmentRequest request) {
-        log.info("Authority assignment request - superUserId: {}, targetUserId: {}", superUserId, request.getUserId());
-        UserResponse response = userService.assignAuthoritiesToUser(superUserId, request);
+        log.info("Authority assignment request - targetUserId: {}", request.getUserId());
+        UserResponse response = userService.assignAuthoritiesToUser(request);
         log.info("Authorities assigned successfully to userId: {}", request.getUserId());
         return new ResponseEntity<>(ApiResponse.success(response, "Authorities assigned successfully"), HttpStatus.OK);
     }

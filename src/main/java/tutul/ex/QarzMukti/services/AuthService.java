@@ -13,7 +13,6 @@ import tutul.ex.QarzMukti.dto.LoginRequest;
 import tutul.ex.QarzMukti.dto.LoginResponse;
 import tutul.ex.QarzMukti.dto.UserResponse;
 import tutul.ex.QarzMukti.entities.User;
-import tutul.ex.QarzMukti.repositories.UserRepository;
 import tutul.ex.QarzMukti.security.JwtTokenProvider;
 
 /**
@@ -27,7 +26,6 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
-    private final UserRepository userRepository;
 
     /**
      * Authenticate user and generate JWT token.

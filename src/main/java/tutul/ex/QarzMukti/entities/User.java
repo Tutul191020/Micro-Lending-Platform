@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -62,7 +63,7 @@ public class User {
     @Column(name = "verification_comments")
     private String verificationComments;
 
-    private String verifiedBy;
+    private Long verifiedBy;
 
     @Column(name = "verified_at")
     private OffsetDateTime verifiedAt;
