@@ -18,10 +18,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Custom UserDetailsService implementation for Spring Security.
- * Loads user details from database and converts to Spring Security UserDetails.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor

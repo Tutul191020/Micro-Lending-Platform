@@ -34,11 +34,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
 
-    /**
-     * Register a new user (Self-registration)
-     * User can only sign up, cannot select roles
-     * Remains in PENDING verification status
-     */
+
     @Transactional
     public UserResponse registerUser(UserRegistrationRequest request) {
         log.info("Registering new user: {}", request.getUsername());
@@ -188,9 +184,7 @@ public class UserService {
         return mapToUserResponse(user, roles, authorities, documents);
     }
 
-    /**
-     * Get user by ID
-     */
+
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long userId) {
         User user = findUserOrThrow(String.valueOf((userId)));

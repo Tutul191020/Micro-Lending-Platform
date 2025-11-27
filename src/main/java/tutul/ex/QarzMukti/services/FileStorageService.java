@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j
@@ -30,7 +31,7 @@ public class FileStorageService {
             "image/jpeg", "image/jpg", "image/png", "application/pdf"
     );
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final long MAX_FILE_SIZE = 8 * 1024 * 1024; // 8MB
 
     /**
      * Validate uploaded file
@@ -63,11 +64,11 @@ public class FileStorageService {
     public String store(MultipartFile file, String userId, String documentType) {
         try {
             // Create directory structure: uploads/userId/documentType/
-            Path userDirectory = Paths.get(uploadDirectory, userId.toString(), documentType.toLowerCase());
+            Path userDirectory = Paths.get(uploadDirectory, userId, documentType.toLowerCase());
             Files.createDirectories(userDirectory);
 
             // Generate unique filename
-            String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+            String originalFilename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
             String fileExtension = getFileExtension(originalFilename);
             String newFilename = UUID.randomUUID().toString() + fileExtension;
 
@@ -76,7 +77,7 @@ public class FileStorageService {
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
             // Return relative path
-            String relativePath = userId.toString() + "/" + documentType.toLowerCase() + "/" + newFilename;
+            String relativePath = userId + "/" + documentType.toLowerCase() + "/" + newFilename;
             log.info("File stored successfully: {}", relativePath);
             
             return relativePath;

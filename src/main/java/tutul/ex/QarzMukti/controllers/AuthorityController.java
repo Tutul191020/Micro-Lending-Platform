@@ -19,6 +19,7 @@ import java.util.Set;
 
 @Slf4j
 @RestController
+@RequestMapping(ApiEndpoints.Authorities.BASE)
 @RequiredArgsConstructor
 @Validated
 public class AuthorityController {

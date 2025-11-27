@@ -43,18 +43,14 @@ public class RoleService {
         return mapToRoleResponse(role);
     }
 
-    /**
-     * Get role by ID
-     */
+
     @Transactional(readOnly = true)
     public RoleResponse getRoleById(Integer roleId) {
         Role role = findRoleOrThrow(roleId);
         return mapToRoleResponse(role);
     }
 
-    /**
-     * Get role by name
-     */
+
     @Transactional(readOnly = true)
     public RoleResponse getRoleByName(String name) {
         Role role = roleRepository.findByName(name)
@@ -62,9 +58,7 @@ public class RoleService {
         return mapToRoleResponse(role);
     }
 
-    /**
-     * Get all roles
-     */
+
     @Transactional(readOnly = true)
     public List<RoleResponse> getAllRoles() {
         return roleRepository.findAll().stream()
@@ -72,9 +66,7 @@ public class RoleService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Update role name
-     */
+
     @Transactional
     public RoleResponse updateRole(Integer roleId, RoleRequest request) {
         log.info("Updating role: {}", roleId);
@@ -94,9 +86,7 @@ public class RoleService {
         return mapToRoleResponse(role);
     }
 
-    /**
-     * Delete role (only if no users have this role)
-     */
+
     @Transactional
     public void deleteRole(Integer roleId) {
         log.info("Deleting role: {}", roleId);
@@ -115,17 +105,13 @@ public class RoleService {
         log.info("Role deleted successfully: {}", roleId);
     }
 
-    /**
-     * Check if role exists
-     */
+
     @Transactional(readOnly = true)
     public boolean roleExists(String name) {
         return roleRepository.existsByName(name);
     }
 
-    /**
-     * Get user count for a role
-     */
+
     @Transactional(readOnly = true)
     public long getUserCountByRole(Integer roleId) {
         findRoleOrThrow(roleId);

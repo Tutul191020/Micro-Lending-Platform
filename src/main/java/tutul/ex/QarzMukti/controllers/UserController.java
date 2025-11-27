@@ -18,6 +18,7 @@ import java.util.Set;
 
 @Slf4j
 @RestController
+@RequestMapping(ApiEndpoints.Users.BASE)
 @RequiredArgsConstructor
 @Validated
 public class UserController {

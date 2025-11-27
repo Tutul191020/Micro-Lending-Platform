@@ -13,6 +13,7 @@ import tutul.ex.QarzMukti.services.UserService;
 
 @Slf4j
 @RestController
+@RequestMapping(ApiEndpoints.Auth.BASE)
 @RequiredArgsConstructor
 public class AuthController {
 
