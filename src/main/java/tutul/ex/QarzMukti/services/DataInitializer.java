@@ -286,6 +286,21 @@ public class DataInitializer {
                     .build();
 
             userDocumentsRepository.save(documents);
+        } else {
+            // Update existing super admin to ensure credentials match
+            boolean changed = false;
+            if (!"admin@qarzmukti.dev".equals(superAdmin.getEmail())) {
+                superAdmin.setEmail("admin@qarzmukti.dev");
+                changed = true;
+            }
+            // We can also enforce password update if needed, but we can't easily check
+            // encoded password equality without matching
+            // For now, let's just ensure email is correct as that's the login issue.
+
+            if (changed) {
+                userRepository.save(superAdmin);
+                log.info("Updated Super Admin email");
+            }
         }
 
         // No stale entity; this one is managed.
