@@ -309,6 +309,12 @@ public class DataInitializer {
             assignRoleToUser(Long.valueOf(superAdmin.getId().toString()), superUserRole.getId());
         }
 
+        // Also assign ADMIN role as requested
+        Role adminRole = roles.get("ADMIN");
+        if (adminRole != null) {
+            assignRoleToUser(Long.valueOf(superAdmin.getId().toString()), adminRole.getId());
+        }
+
         log.info("Super Admin initialized");
     }
 

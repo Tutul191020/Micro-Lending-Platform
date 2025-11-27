@@ -10,7 +10,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tutul.ex.QarzMukti.entities.User;
+import tutul.ex.QarzMukti.repositories.RoleAuthorityRepository;
+import tutul.ex.QarzMukti.repositories.UserAuthorityRepository;
 import tutul.ex.QarzMukti.repositories.UserRepository;
+import tutul.ex.QarzMukti.repositories.UserRoleRepository;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,6 +24,9 @@ import java.util.Set;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
+    private final UserAuthorityRepository userAuthorityRepository;
+    private final RoleAuthorityRepository roleAuthorityRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -54,14 +60,33 @@ public class CustomUserDetailsService implements UserDetailsService {
         Set<GrantedAuthority> authorities = new HashSet<>();
 
         // Add role-based authorities
-        // Note: In a complete implementation, you would fetch UserRole entities
-        // For now, we'll add a placeholder. This will be enhanced when UserRole
-        // repository is available.
+        // 1. Get roles
+        Set<tutul.ex.QarzMukti.entities.Role> roles = userRoleRepository.findRolesByUserId(user.getId());
+        for (tutul.ex.QarzMukti.entities.Role role : roles) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
 
-        // Add direct authorities
-        // Note: Similar to roles, this would fetch UserAuthority entities
-        // For now, adding a default authority
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+            // Fetch authorities associated with this role
+            Set<tutul.ex.QarzMukti.entities.Authority> roleAuthorities = roleAuthorityRepository
+                    .findAuthoritiesByRoleId(role.getId());
+            for (tutul.ex.QarzMukti.entities.Authority authority : roleAuthorities) {
+                authorities.add(new SimpleGrantedAuthority(authority.getName()));
+            }
+        }
+
+        // 2. Get direct authorities
+        Set<tutul.ex.QarzMukti.entities.Authority> userAuthorities = userAuthorityRepository
+                .findAllUserAuthorities(user.getId());
+        for (tutul.ex.QarzMukti.entities.Authority authority : userAuthorities) {
+            authorities.add(new SimpleGrantedAuthority(authority.getName()));
+        }
+
+        // Ensure ROLE_USER is always present if no other roles are assigned, or just as
+        // a base role
+        // But if user has roles, we might not want to force it unless it's a business
+        // rule.
+        // For now, keeping it as it was requested to have "all permissions" for
+        // superadmin.
+        // If the user has roles, they will be added above.
 
         log.debug("User {} has authorities: {}", user.getUsername(), authorities);
 
