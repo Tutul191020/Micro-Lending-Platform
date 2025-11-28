@@ -46,11 +46,7 @@ public class FundRequestController {
         
         FundRequestResponse response = fundRequestService.createFundRequest(request, accountant);
         
-        return ResponseEntity.ok(ApiResponse.<FundRequestResponse>builder()
-                .success(true)
-                .message("Fund request created successfully")
-                .data(response)
-                .build());
+        return ResponseEntity.ok(ApiResponse.success(response, "Fund request created successfully"));
     }
 
     /**
@@ -58,7 +54,7 @@ public class FundRequestController {
      */
     @GetMapping("/my-requests")
     @PreAuthorize("hasAuthority('FUND:READ')")
-    public ResponseEntity<ApiResponse<Page<FundRequestResponse>>> getMyRequests(
+    public ResponseEntity<ApiResponse<ApiResponse.PageResponse<FundRequestResponse>>> getMyRequests(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication) {
@@ -68,11 +64,7 @@ public class FundRequestController {
         
         Page<FundRequestResponse> response = fundRequestService.getMyRequests(accountant, pageable);
         
-        return ResponseEntity.ok(ApiResponse.<Page<FundRequestResponse>>builder()
-                .success(true)
-                .message("Fund requests retrieved successfully")
-                .data(response)
-                .build());
+        return ResponseEntity.ok(ApiResponse.successPage(response, "Fund requests retrieved successfully"));
     }
 
     /**
@@ -83,11 +75,7 @@ public class FundRequestController {
     public ResponseEntity<ApiResponse<FundRequestResponse>> getFundRequest(@PathVariable UUID id) {
         FundRequestResponse response = fundRequestService.getFundRequestById(id);
         
-        return ResponseEntity.ok(ApiResponse.<FundRequestResponse>builder()
-                .success(true)
-                .message("Fund request retrieved successfully")
-                .data(response)
-                .build());
+        return ResponseEntity.ok(ApiResponse.success(response, "Fund request retrieved successfully"));
     }
 
     /**
@@ -95,18 +83,14 @@ public class FundRequestController {
      */
     @GetMapping("/pending")
     @PreAuthorize("hasAuthority('FUND:ALLOCATE')")
-    public ResponseEntity<ApiResponse<Page<FundRequestResponse>>> getPendingRequests(
+    public ResponseEntity<ApiResponse<ApiResponse.PageResponse<FundRequestResponse>>> getPendingRequests(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
         Page<FundRequestResponse> response = fundRequestService.getPendingRequests(pageable);
         
-        return ResponseEntity.ok(ApiResponse.<Page<FundRequestResponse>>builder()
-                .success(true)
-                .message("Pending fund requests retrieved successfully")
-                .data(response)
-                .build());
+        return ResponseEntity.ok(ApiResponse.successPage(response, "Pending fund requests retrieved successfully"));
     }
 
     /**
@@ -125,11 +109,7 @@ public class FundRequestController {
         String comments = request != null ? request.getComments() : null;
         FundRequestResponse response = fundRequestService.approveFundRequest(id, admin, comments);
         
-        return ResponseEntity.ok(ApiResponse.<FundRequestResponse>builder()
-                .success(true)
-                .message("Fund request approved and funds allocated successfully")
-                .data(response)
-                .build());
+        return ResponseEntity.ok(ApiResponse.success(response, "Fund request approved and funds allocated successfully"));
     }
 
     /**
@@ -148,11 +128,7 @@ public class FundRequestController {
         String comments = request != null ? request.getComments() : null;
         FundRequestResponse response = fundRequestService.rejectFundRequest(id, admin, comments);
         
-        return ResponseEntity.ok(ApiResponse.<FundRequestResponse>builder()
-                .success(true)
-                .message("Fund request rejected")
-                .data(response)
-                .build());
+        return ResponseEntity.ok(ApiResponse.success(response, "Fund request rejected"));
     }
 
     private User getUserFromAuthentication(Authentication authentication) {

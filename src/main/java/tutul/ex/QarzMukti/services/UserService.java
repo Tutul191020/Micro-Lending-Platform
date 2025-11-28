@@ -79,7 +79,7 @@ public class UserService {
         userDocumentsRepository.save(documents);
 
         log.info("User registered successfully with PENDING status: {}", user.getId());
-        return mapToUserResponse(user, new HashSet<>(), new HashSet<>(), documents);
+        return mapToUserResponse(user, new HashSet<>());
     }
 
     /**
@@ -181,21 +181,16 @@ public class UserService {
         user.setUpdatedAt(OffsetDateTime.now());
         user = userRepository.save(user);
 
-        Set<Role> roles = userRoleRepository.findRolesByUserId(user.getId());
         Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(user.getId());
-        UserDocuments documents = userDocumentsRepository.findByUserId(user.getId()).orElse(null);
-
         log.info("User verification completed: {} with status: {}", user.getId(), request.getStatus());
-        return mapToUserResponse(user, roles, authorities, documents);
+        return mapToUserResponse(user,authorities);
     }
 
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long userId) {
         User user = findUserOrThrow(String.valueOf((userId)));
-        Set<Role> roles = userRoleRepository.findRolesByUserId((userId));
         Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(userId);
-        UserDocuments documents = userDocumentsRepository.findByUserId(userId).orElse(null);
-        return mapToUserResponse(user, roles, authorities, documents);
+        return mapToUserResponse(user, authorities);
     }
 
     /**
@@ -230,12 +225,10 @@ public class UserService {
         user.setUpdatedAt(OffsetDateTime.now());
         user = userRepository.save(user);
 
-        Set<Role> roles = userRoleRepository.findRolesByUserId(Long.valueOf((userId)));
         Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(Long.valueOf(userId));
-        UserDocuments documents = userDocumentsRepository.findByUserId(Long.valueOf(userId)).orElse(null);
 
         log.info("User updated successfully: {}", userId);
-        return mapToUserResponse(user, roles, authorities, documents);
+        return mapToUserResponse(user,authorities);
     }
 
     /**
@@ -280,12 +273,10 @@ public class UserService {
         // Assign new roles
         assignRolesToUser(user, roles, authenticatedUserId);
 
-        Set<Role> updatedRoles = userRoleRepository.findRolesByUserId(userId);
         Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(userId);
-        UserDocuments documents = userDocumentsRepository.findByUserId(userId).orElse(null);
 
         log.info("Roles assigned successfully to user: {}", userId);
-        return mapToUserResponse(user, updatedRoles, authorities, documents);
+        return mapToUserResponse(user, authorities);
     }
 
     /**
@@ -314,12 +305,10 @@ public class UserService {
             userAuthorityRepository.save(userAuthority);
         }
 
-        Set<Role> roles = userRoleRepository.findRolesByUserId((user.getId()));
         Set<Authority> allAuthorities = userAuthorityRepository.findAllUserAuthorities(user.getId());
-        UserDocuments documents = userDocumentsRepository.findByUserId(user.getId()).orElse(null);
 
         log.info("Authorities assigned successfully to user: {}", request.getUserId());
-        return mapToUserResponse(user, roles, allAuthorities, documents);
+        return mapToUserResponse(user,allAuthorities);
     }
 
     /**
@@ -410,11 +399,10 @@ public class UserService {
         user.setUpdatedAt(OffsetDateTime.now());
         user = userRepository.save(user);
         
-        Set<Role> roles = userRoleRepository.findRolesByUserId(userId);
         Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(userId);
         
         log.info("Onboarding completed for user: {}", userId);
-        return mapToUserResponse(user, roles, authorities, documents);
+        return mapToUserResponse(user,authorities);
     }
 
     /**
@@ -441,7 +429,7 @@ public class UserService {
         UserDocuments documents = userDocumentsRepository.findByUserId(userId).orElse(null);
         
         boolean onboardingCompleted = user.getOnboardingStatus() == OnboardingStatus.ONBOARDING_COMPLETED;
-        boolean documentsUploaded = documents != null && areAllDocumentsUploaded(documents);
+        boolean documentsUploaded = areAllDocumentsUploaded(documents);
         boolean adminVerified = "APPROVED".equals(user.getVerificationStatus()) && user.getVerified();
         boolean accountEnabled = user.getEnabled();
         
@@ -536,8 +524,8 @@ public class UserService {
         }
     }
 
-    private UserResponse mapToUserResponse(User user, Set<Role> roles, Set<Authority> authorities,
-            UserDocuments documents) {
+    @Transactional
+    protected UserResponse mapToUserResponse(User user, Set<Authority> authorities) {
         return UserResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())

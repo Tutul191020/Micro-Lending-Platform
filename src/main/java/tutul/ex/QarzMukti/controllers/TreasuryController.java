@@ -2,6 +2,9 @@ package tutul.ex.QarzMukti.controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -10,9 +13,11 @@ import tutul.ex.QarzMukti.dto.ApiResponse;
 import tutul.ex.QarzMukti.dto.FundAllocationRequest;
 import tutul.ex.QarzMukti.dto.FundPoolResponse;
 import tutul.ex.QarzMukti.dto.TreasuryMintRequest;
+import tutul.ex.QarzMukti.dto.TransactionLogResponse;
 import tutul.ex.QarzMukti.entities.User;
 import tutul.ex.QarzMukti.repositories.UserRepository;
 import tutul.ex.QarzMukti.services.TreasuryService;
+import tutul.ex.QarzMukti.services.TransactionLogService;
 
 /**
  * Controller for Treasury operations.
@@ -26,7 +31,7 @@ public class TreasuryController {
 
     private final TreasuryService treasuryService;
     private final UserRepository userRepository;
-    private final tutul.ex.QarzMukti.services.TransactionLogService transactionLogService;
+    private final TransactionLogService transactionLogService;
 
     /**
      * Mint new funds into the treasury.
@@ -43,11 +48,7 @@ public class TreasuryController {
         
         FundPoolResponse response = treasuryService.mintFund(request, admin);
         
-        return ResponseEntity.ok(ApiResponse.<FundPoolResponse>builder()
-                .success(true)
-                .message("Funds minted successfully")
-                .data(response)
-                .build());
+        return ResponseEntity.ok(ApiResponse.success(response, "Funds minted successfully"));
     }
 
     /**
@@ -66,11 +67,7 @@ public class TreasuryController {
         
         FundPoolResponse response = treasuryService.allocateFundToAccountant(request, admin);
         
-        return ResponseEntity.ok(ApiResponse.<FundPoolResponse>builder()
-                .success(true)
-                .message("Funds allocated successfully")
-                .data(response)
-                .build());
+        return ResponseEntity.ok(ApiResponse.success(response, "Funds allocated successfully"));
     }
 
     /**
@@ -84,11 +81,7 @@ public class TreasuryController {
         
         FundPoolResponse response = treasuryService.getUserFundPool(user);
         
-        return ResponseEntity.ok(ApiResponse.<FundPoolResponse>builder()
-                .success(true)
-                .message("Fund pool retrieved successfully")
-                .data(response)
-                .build());
+        return ResponseEntity.ok(ApiResponse.success(response, "Fund pool retrieved successfully"));
     }
 
 
@@ -103,21 +96,17 @@ public class TreasuryController {
      */
     @GetMapping("/transactions")
     @PreAuthorize("hasAuthority('FUND:READ')")
-    public ResponseEntity<ApiResponse<org.springframework.data.domain.Page<tutul.ex.QarzMukti.dto.TransactionLogResponse>>> getTransactions(
+    public ResponseEntity<ApiResponse<ApiResponse.PageResponse<TransactionLogResponse>>> getTransactions(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication) {
         
         User user = getUserFromAuthentication(authentication);
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size);
         
-        org.springframework.data.domain.Page<tutul.ex.QarzMukti.dto.TransactionLogResponse> response = 
-                transactionLogService.getTransactionHistory(user.getId(), pageable);
+        Page<TransactionLogResponse> response = transactionLogService.getTransactionHistory(user.getId(), pageable);
         
-        return ResponseEntity.ok(ApiResponse.<org.springframework.data.domain.Page<tutul.ex.QarzMukti.dto.TransactionLogResponse>>builder()
-                .success(true)
-                .message("Transaction history retrieved successfully")
-                .data(response)
-                .build());
+        return ResponseEntity.ok(ApiResponse.successPage(response, "Transaction history retrieved successfully"));
     }
+
 }
