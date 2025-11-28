@@ -21,6 +21,9 @@ public class UserResponse {
     private Boolean enabled;
     private String verificationStatus;
     private Long verifiedBy;
+    private tutul.ex.QarzMukti.enums.OnboardingStatus onboardingStatus;
+    private OffsetDateTime onboardingCompletedAt;
+    private Boolean isEligibleForLoan;
     private Set<AuthorityResponse> authorities;
     private OffsetDateTime createdAt;
 

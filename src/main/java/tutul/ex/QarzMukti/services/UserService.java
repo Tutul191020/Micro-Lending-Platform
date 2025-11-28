@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tutul.ex.QarzMukti.enums.OnboardingStatus;
 import org.springframework.web.multipart.MultipartFile;
 import tutul.ex.QarzMukti.common.DuplicateResourceException;
 import tutul.ex.QarzMukti.common.ForbiddenException;
@@ -59,6 +60,7 @@ public class UserService {
                 .enabled(true)
                 .verified(false)
                 .verificationStatus("PENDING")
+                .onboardingStatus(OnboardingStatus.REGISTERED)
                 .createdAt(OffsetDateTime.now())
                 .build();
 
@@ -128,6 +130,9 @@ public class UserService {
 
         documents.setUpdatedAt(now);
         userDocumentsRepository.save(documents);
+
+        // Update user's onboarding status based on document completion
+        updateOnboardingStatusBasedOnDocuments(user, documents);
 
         log.info("Document uploaded successfully: {} for user: {}", documentType, userId);
 
@@ -354,6 +359,113 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Get detailed onboarding status for a user
+     */
+    @Transactional(readOnly = true)
+    public OnboardingStatusResponse getOnboardingStatus(Long userId) {
+        log.info("Getting onboarding status for user: {}", userId);
+        
+        User user = findUserOrThrow(String.valueOf(userId));
+        UserDocuments documents = userDocumentsRepository.findByUserId(userId).orElse(null);
+        
+        // Calculate document completion status
+        OnboardingStatusResponse.DocumentCompletionStatus docStatus = calculateDocumentCompletionStatus(documents);
+        
+        // Check loan eligibility
+        boolean isEligible = checkLoanEligibility(userId);
+        String eligibilityMessage = buildEligibilityMessage(user, isEligible);
+        
+        return OnboardingStatusResponse.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .fullName(user.getFullName())
+                .onboardingStatus(user.getOnboardingStatus())
+                .documentStatus(docStatus)
+                .isEligibleForLoan(isEligible)
+                .eligibilityMessage(eligibilityMessage)
+                .onboardingCompletedAt(user.getOnboardingCompletedAt())
+                .build();
+    }
+
+    /**
+     * Complete user onboarding (can be called explicitly or happens automatically)
+     */
+    @Transactional
+    public UserResponse completeOnboarding(Long userId) {
+        log.info("Completing onboarding for user: {}", userId);
+        
+        User user = findUserOrThrow(String.valueOf(userId));
+        UserDocuments documents = userDocumentsRepository.findByUserId(userId)
+                .orElseThrow(() -> new ValidationException("No documents found for user"));
+        
+        // Validate all documents are uploaded
+        if (!areAllDocumentsUploaded(documents)) {
+            throw new ValidationException("Cannot complete onboarding. All required documents must be uploaded.");
+        }
+        
+        // Update onboarding status
+        user.setOnboardingStatus(OnboardingStatus.ONBOARDING_COMPLETED);
+        user.setOnboardingCompletedAt(OffsetDateTime.now());
+        user.setUpdatedAt(OffsetDateTime.now());
+        user = userRepository.save(user);
+        
+        Set<Role> roles = userRoleRepository.findRolesByUserId(userId);
+        Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(userId);
+        
+        log.info("Onboarding completed for user: {}", userId);
+        return mapToUserResponse(user, roles, authorities, documents);
+    }
+
+    /**
+     * Check if user is eligible to apply for loans
+     */
+    @Transactional(readOnly = true)
+    public Boolean checkLoanEligibility(Long userId) {
+        User user = findUserOrThrow(String.valueOf(userId));
+        
+        return user.getOnboardingStatus() == OnboardingStatus.ONBOARDING_COMPLETED
+                && "APPROVED".equals(user.getVerificationStatus())
+                && user.getVerified()
+                && user.getEnabled();
+    }
+
+    /**
+     * Get detailed loan eligibility information
+     */
+    @Transactional(readOnly = true)
+    public LoanEligibilityResponse getLoanEligibility(Long userId) {
+        log.info("Checking loan eligibility for user: {}", userId);
+        
+        User user = findUserOrThrow(String.valueOf(userId));
+        UserDocuments documents = userDocumentsRepository.findByUserId(userId).orElse(null);
+        
+        boolean onboardingCompleted = user.getOnboardingStatus() == OnboardingStatus.ONBOARDING_COMPLETED;
+        boolean documentsUploaded = documents != null && areAllDocumentsUploaded(documents);
+        boolean adminVerified = "APPROVED".equals(user.getVerificationStatus()) && user.getVerified();
+        boolean accountEnabled = user.getEnabled();
+        
+        boolean isEligible = onboardingCompleted && adminVerified && accountEnabled;
+        
+        String message = buildEligibilityMessage(user, isEligible);
+        
+        LoanEligibilityResponse.EligibilityDetails details = LoanEligibilityResponse.EligibilityDetails.builder()
+                .onboardingCompleted(onboardingCompleted)
+                .documentsUploaded(documentsUploaded)
+                .adminVerified(adminVerified)
+                .accountEnabled(accountEnabled)
+                .currentOnboardingStatus(user.getOnboardingStatus().name())
+                .currentVerificationStatus(user.getVerificationStatus())
+                .build();
+        
+        return LoanEligibilityResponse.builder()
+                .userId(user.getId())
+                .isEligible(isEligible)
+                .message(message)
+                .details(details)
+                .build();
+    }
+
     // ============= Helper Methods =============
 
     /**
@@ -434,6 +546,9 @@ public class UserService {
                 .dateOfBirth(user.getDateOfBirth())
                 .enabled(user.getEnabled())
                 .verificationStatus(user.getVerificationStatus())
+                .onboardingStatus(user.getOnboardingStatus())
+                .onboardingCompletedAt(user.getOnboardingCompletedAt())
+                .isEligibleForLoan(checkLoanEligibility(user.getId()))
                 .authorities(authorities.stream()
                         .map(authority -> AuthorityResponse.builder()
                                 .id(authority.getId())
@@ -459,6 +574,116 @@ public class UserService {
                 .enabled(user.getEnabled())
                 .verified(user.getVerified())
                 .verificationStatus(user.getVerificationStatus())
+                .onboardingStatus(user.getOnboardingStatus())
                 .build();
+    }
+
+    // ============= Onboarding Status Helper Methods =============
+
+    /**
+     * Update user's onboarding status based on document completion
+     */
+    private void updateOnboardingStatusBasedOnDocuments(User user, UserDocuments documents) {
+        OnboardingStatus currentStatus = user.getOnboardingStatus();
+        OnboardingStatus newStatus = currentStatus;
+        
+        boolean allDocsUploaded = areAllDocumentsUploaded(documents);
+        boolean anyDocUploaded = isAnyDocumentUploaded(documents);
+        
+        // Determine new status based on document completion
+        if (allDocsUploaded) {
+            // All documents uploaded - automatically complete onboarding
+            newStatus = OnboardingStatus.ONBOARDING_COMPLETED;
+            if (user.getOnboardingCompletedAt() == null) {
+                user.setOnboardingCompletedAt(OffsetDateTime.now());
+            }
+        } else if (anyDocUploaded && currentStatus == OnboardingStatus.REGISTERED) {
+            // At least one document uploaded - move to pending
+            newStatus = OnboardingStatus.DOCUMENTS_PENDING;
+        }
+        
+        // Update status if changed
+        if (newStatus != currentStatus) {
+            user.setOnboardingStatus(newStatus);
+            user.setUpdatedAt(OffsetDateTime.now());
+            userRepository.save(user);
+            log.info("Updated onboarding status for user {} from {} to {}", 
+                    user.getId(), currentStatus, newStatus);
+        }
+    }
+
+    /**
+     * Check if all required documents are uploaded
+     */
+    private boolean areAllDocumentsUploaded(UserDocuments documents) {
+        if (documents == null) {
+            return false;
+        }
+        return documents.getNationalIdDocumentPath() != null 
+                && documents.getElectricityBillDocumentPath() != null 
+                && documents.getProfilePhotoPath() != null;
+    }
+
+    /**
+     * Check if any document is uploaded
+     */
+    private boolean isAnyDocumentUploaded(UserDocuments documents) {
+        if (documents == null) {
+            return false;
+        }
+        return documents.getNationalIdDocumentPath() != null 
+                || documents.getElectricityBillDocumentPath() != null 
+                || documents.getProfilePhotoPath() != null;
+    }
+
+    /**
+     * Calculate document completion status
+     */
+    private OnboardingStatusResponse.DocumentCompletionStatus calculateDocumentCompletionStatus(
+            UserDocuments documents) {
+        
+        boolean nationalIdUploaded = documents != null && documents.getNationalIdDocumentPath() != null;
+        boolean electricityBillUploaded = documents != null && documents.getElectricityBillDocumentPath() != null;
+        boolean profilePhotoUploaded = documents != null && documents.getProfilePhotoPath() != null;
+        
+        int totalRequired = 3;
+        int totalUploaded = (nationalIdUploaded ? 1 : 0) 
+                + (electricityBillUploaded ? 1 : 0) 
+                + (profilePhotoUploaded ? 1 : 0);
+        
+        double completionPercentage = (totalUploaded * 100.0) / totalRequired;
+        
+        return OnboardingStatusResponse.DocumentCompletionStatus.builder()
+                .nationalIdUploaded(nationalIdUploaded)
+                .electricityBillUploaded(electricityBillUploaded)
+                .profilePhotoUploaded(profilePhotoUploaded)
+                .totalRequired(totalRequired)
+                .totalUploaded(totalUploaded)
+                .completionPercentage(completionPercentage)
+                .build();
+    }
+
+    /**
+     * Build eligibility message based on user status
+     */
+    private String buildEligibilityMessage(User user, boolean isEligible) {
+        if (isEligible) {
+            return "You are eligible to apply for loans.";
+        }
+        
+        // Provide specific reason for ineligibility
+        if (user.getOnboardingStatus() != OnboardingStatus.ONBOARDING_COMPLETED) {
+            return "Please complete your onboarding by uploading all required documents.";
+        }
+        
+        if (!"APPROVED".equals(user.getVerificationStatus()) || !user.getVerified()) {
+            return "Your account is pending admin verification. Please wait for approval.";
+        }
+        
+        if (!user.getEnabled()) {
+            return "Your account is disabled. Please contact support.";
+        }
+        
+        return "You are not eligible to apply for loans at this time.";
     }
 }

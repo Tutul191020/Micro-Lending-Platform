@@ -51,14 +51,25 @@ public class User {
     @Column(name = "postal_code", length = 20)
     private String postalCode;
 
+    @Builder.Default
     @Column(name = "enabled", nullable = false)
     private Boolean enabled = true;
 
+    @Builder.Default
     @Column(name = "verified", nullable = false)
     private Boolean verified = false;
 
+    @Builder.Default
     @Column(name = "verification_status", length = 20)
     private String verificationStatus = "PENDING";
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "onboarding_status", nullable = false, length = 30)
+    private tutul.ex.QarzMukti.enums.OnboardingStatus onboardingStatus = tutul.ex.QarzMukti.enums.OnboardingStatus.REGISTERED;
+
+    @Column(name = "onboarding_completed_at")
+    private OffsetDateTime onboardingCompletedAt;
 
     @Column(name = "verification_comments")
     private String verificationComments;

@@ -53,6 +53,9 @@ public final class ApiEndpoints {
         public static final String ASSIGN_ROLES = "/{userId}/roles";
         public static final String ASSIGN_AUTHORITIES = "/authorities/assign";
         public static final String SEARCH = "/search";
+        public static final String ONBOARDING_STATUS = "/{userId}/onboarding-status";
+        public static final String COMPLETE_ONBOARDING = "/{userId}/complete-onboarding";
+        public static final String LOAN_ELIGIBILITY = "/{userId}/loan-eligibility";
 
         // Full paths
         public static final String FULL_BY_ID = BASE + BY_ID;
@@ -63,6 +66,9 @@ public final class ApiEndpoints {
         public static final String FULL_ASSIGN_ROLES = BASE + ASSIGN_ROLES;
         public static final String FULL_ASSIGN_AUTHORITIES = BASE + ASSIGN_AUTHORITIES;
         public static final String FULL_SEARCH = BASE + SEARCH;
+        public static final String FULL_ONBOARDING_STATUS = BASE + ONBOARDING_STATUS;
+        public static final String FULL_COMPLETE_ONBOARDING = BASE + COMPLETE_ONBOARDING;
+        public static final String FULL_LOAN_ELIGIBILITY = BASE + LOAN_ELIGIBILITY;
     }
 
     // ==================== Role Endpoints ====================

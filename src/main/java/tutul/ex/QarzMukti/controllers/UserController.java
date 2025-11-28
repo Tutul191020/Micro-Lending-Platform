@@ -115,4 +115,29 @@ public class UserController {
         log.info("User search completed - found {} users", response.getTotalElements());
         return new ResponseEntity<>(ApiResponse.success(response, "Users retrieved successfully"), HttpStatus.OK);
     }
+
+    @GetMapping(ApiEndpoints.Users.ONBOARDING_STATUS)
+    public ResponseEntity<ApiResponse<OnboardingStatusResponse>> getOnboardingStatus(@PathVariable Long userId) {
+        log.info("Fetching onboarding status for userId: {}", userId);
+        OnboardingStatusResponse response = userService.getOnboardingStatus(userId);
+        log.info("Onboarding status retrieved for userId: {} - Status: {}, Completion: {}%", 
+                userId, response.getOnboardingStatus(), response.getDocumentStatus().getCompletionPercentage());
+        return new ResponseEntity<>(ApiResponse.success(response, "Onboarding status retrieved successfully"), HttpStatus.OK);
+    }
+
+    @PostMapping(ApiEndpoints.Users.COMPLETE_ONBOARDING)
+    public ResponseEntity<ApiResponse<UserResponse>> completeOnboarding(@PathVariable Long userId) {
+        log.info("Completing onboarding for userId: {}", userId);
+        UserResponse response = userService.completeOnboarding(userId);
+        log.info("Onboarding completed successfully for userId: {}", userId);
+        return new ResponseEntity<>(ApiResponse.success(response, "Onboarding completed successfully"), HttpStatus.OK);
+    }
+
+    @GetMapping(ApiEndpoints.Users.LOAN_ELIGIBILITY)
+    public ResponseEntity<ApiResponse<LoanEligibilityResponse>> getLoanEligibility(@PathVariable Long userId) {
+        log.info("Checking loan eligibility for userId: {}", userId);
+        LoanEligibilityResponse response = userService.getLoanEligibility(userId);
+        log.info("Loan eligibility checked for userId: {} - Eligible: {}", userId, response.getIsEligible());
+        return new ResponseEntity<>(ApiResponse.success(response, "Loan eligibility checked successfully"), HttpStatus.OK);
+    }
 }

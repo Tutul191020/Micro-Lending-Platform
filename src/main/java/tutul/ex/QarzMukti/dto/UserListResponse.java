@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tutul.ex.QarzMukti.enums.OnboardingStatus;
 
 @Data
 @Builder
@@ -18,5 +19,6 @@ public class UserListResponse {
     private Boolean enabled;
     private Boolean verified;
     private String verificationStatus;
+    private OnboardingStatus onboardingStatus;
 
 }
