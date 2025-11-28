@@ -27,6 +27,7 @@ public class TreasuryService {
     private final VirtualFundPoolRepository virtualFundPoolRepository;
     private final UserRepository userRepository;
     private final LedgerService ledgerService;
+    private final TransactionLogService transactionLogService;
 
     /**
      * Mint new funds into the system treasury.
@@ -60,6 +61,21 @@ public class TreasuryService {
                 "TREASURY_DEPOSIT",
                 null, 
                 "SYSTEM",
+                metadata,
+                adminUser
+        );
+
+        // Log in transaction log
+        transactionLogService.logTransaction(
+                "FUND_MINT",
+                request.getAmount(),
+                null,
+                adminUser,
+                null,
+                treasuryPool.getId(),
+                null,
+                "TREASURY",
+                "Minted " + request.getAmount() + " BDT into treasury",
                 metadata,
                 adminUser
         );
@@ -114,6 +130,21 @@ public class TreasuryService {
                 "FUND_ALLOCATION",
                 null,
                 "SYSTEM",
+                metadata,
+                adminUser
+        );
+
+        // Log in transaction log
+        transactionLogService.logTransaction(
+                "FUND_ALLOCATION",
+                request.getAmount(),
+                adminUser,
+                accountant,
+                treasuryPool.getId(),
+                accountantPool.getId(),
+                null,
+                "TREASURY",
+                "Allocated " + request.getAmount() + " BDT to " + accountant.getUsername(),
                 metadata,
                 adminUser
         );

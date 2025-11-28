@@ -26,6 +26,7 @@ public class TreasuryController {
 
     private final TreasuryService treasuryService;
     private final UserRepository userRepository;
+    private final tutul.ex.QarzMukti.services.TransactionLogService transactionLogService;
 
     /**
      * Mint new funds into the treasury.
@@ -90,8 +91,33 @@ public class TreasuryController {
                 .build());
     }
 
+
     private User getUserFromAuthentication(Authentication authentication) {
         return userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new RuntimeException("User not found: " + authentication.getName()));
+    }
+
+    /**
+     * Get transaction history for the current user.
+     * Requires FUND:READ authority.
+     */
+    @GetMapping("/transactions")
+    @PreAuthorize("hasAuthority('FUND:READ')")
+    public ResponseEntity<ApiResponse<org.springframework.data.domain.Page<tutul.ex.QarzMukti.dto.TransactionLogResponse>>> getTransactions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
+        
+        User user = getUserFromAuthentication(authentication);
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        
+        org.springframework.data.domain.Page<tutul.ex.QarzMukti.dto.TransactionLogResponse> response = 
+                transactionLogService.getTransactionHistory(user.getId(), pageable);
+        
+        return ResponseEntity.ok(ApiResponse.<org.springframework.data.domain.Page<tutul.ex.QarzMukti.dto.TransactionLogResponse>>builder()
+                .success(true)
+                .message("Transaction history retrieved successfully")
+                .data(response)
+                .build());
     }
 }
