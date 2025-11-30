@@ -1,7 +1,10 @@
 package tutul.ex.QarzMukti.entities;
 
 import jakarta.persistence.*;
+import jdk.jfr.Timestamp;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -30,5 +33,9 @@ public class InterestRateAudit {
     private String changeReason;
 
     @Column(nullable = false)
+    @CreationTimestamp
     private Instant createdAt;
+
+     @Column(nullable = false)
+    private Instant updatedAt;
 }
