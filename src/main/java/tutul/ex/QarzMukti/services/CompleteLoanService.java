@@ -265,10 +265,6 @@ public class CompleteLoanService {
 
         log.info("Repayment schedule generated: loanId={}, installments={}, totalRepayable={}", 
                 loan.getId(), savedRepayments.size(), totalRepayable);
-
-        savedRepayments.stream()
-                .map(this::mapToLoanRepaymentResponse)
-                .toList();
     }
 
     private List<LoanRepayment> generateFlatInterestSchedule(Loan loan, BigDecimal principal, 

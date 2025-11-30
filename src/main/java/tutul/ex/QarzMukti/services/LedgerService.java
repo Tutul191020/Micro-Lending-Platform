@@ -105,4 +105,26 @@ public class LedgerService {
                 performedBy
         );
     }
+    /**
+     * Helper method to create a loan repayment ledger entry
+     */
+    @Transactional
+    public void createLoanRepaymentEntry(
+            VirtualFundPool debitPool,
+            VirtualFundPool creditPool,
+            BigDecimal amount,
+            UUID repaymentId,
+            User performedBy) {
+        
+        recordTransaction(
+                debitPool,
+                creditPool,
+                amount,
+                "LOAN_REPAYMENT",
+                repaymentId,
+                "LOAN_REPAYMENT",
+                Map.of("description", "Loan repayment received"),
+                performedBy
+        );
+    }
 }
