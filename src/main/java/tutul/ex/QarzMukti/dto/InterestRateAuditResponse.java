@@ -9,9 +9,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Response DTO for interest rate audit records
- */
 @Data
 @Builder
 @NoArgsConstructor

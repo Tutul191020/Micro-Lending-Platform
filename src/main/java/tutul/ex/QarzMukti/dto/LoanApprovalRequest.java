@@ -28,5 +28,6 @@ public class LoanApprovalRequest {
     @DecimalMin(value = "0.01", message = "Interest rate must be greater than 0")
     private BigDecimal overrideInterestRate; // Optional: override system default
 
+    @NotNull
     private String comment; // Optional: approval/rejection comment
 }

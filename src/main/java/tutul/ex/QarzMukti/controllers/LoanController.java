@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import tutul.ex.QarzMukti.common.ResourceNotFoundException;
 import tutul.ex.QarzMukti.dto.*;
 import tutul.ex.QarzMukti.entities.User;
 import tutul.ex.QarzMukti.repositories.UserRepository;
@@ -102,6 +103,6 @@ public class LoanController {
 
     private User getUserFromAuthentication(Authentication authentication) {
         return userRepository.findByUsername(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("User not found: " + authentication.getName()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + authentication.getName()));
     }
 }

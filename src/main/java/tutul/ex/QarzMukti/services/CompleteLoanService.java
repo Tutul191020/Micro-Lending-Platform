@@ -107,7 +107,7 @@ public class CompleteLoanService {
 
         // Validate loan status
         if (!LoanStatus.PENDING_APPROVAL.name().equals(loan.getStatus())) {
-            throw new ValidationException("Loan is not in PENDING_APPROVAL status: " + loan.getStatus());
+            throw new ValidationException("Only PENDING_APPROVAL status can permissible: " + loan.getStatus());
         }
 
         // Find approval record
@@ -123,8 +123,9 @@ public class CompleteLoanService {
         }
     }
 
-    private LoanResponse processApproval(Loan loan, LoanApproval approval, 
-                                         LoanApprovalRequest request, User accountant) {
+    @Transactional
+    protected LoanResponse processApproval(Loan loan, LoanApproval approval,
+                                           LoanApprovalRequest request, User accountant) {
         log.info("Approving loan: loanId={}", loan.getId());
 
         // Override interest rate if provided
@@ -135,11 +136,11 @@ public class CompleteLoanService {
 
         // Validate accountant has sufficient funds
         VirtualFundPool accountantPool = virtualFundPoolRepository.findByUserId(accountant.getId())
-                .orElseThrow(() -> new ValidationException("Accountant fund pool not found"));
+                .orElseThrow(() -> new ValidationException("Accountant has not created any fund pool request yet"));
 
         if (accountantPool.getBalance().compareTo(loan.getPrincipal()) < 0) {
             throw new ValidationException("Insufficient funds in accountant pool. Required: " + 
-                    loan.getPrincipal() + ", Available: " + accountantPool.getBalance());
+                    loan.getPrincipal() + " Available: " + accountantPool.getBalance());
         }
 
         // Disburse loan (deduct from accountant, create ledger entries)
@@ -234,7 +235,7 @@ public class CompleteLoanService {
     // ==================== REPAYMENT SCHEDULE GENERATION ====================
 
     @Transactional
-    public List<LoanRepaymentResponse> generateRepaymentSchedule(Loan loan) {
+    public void generateRepaymentSchedule(Loan loan) {
         log.info("Generating repayment schedule for loan: loanId={}, tenure={}, interestType={}", 
                 loan.getId(), loan.getTenureMonths(), loan.getInterestType());
 
@@ -265,9 +266,9 @@ public class CompleteLoanService {
         log.info("Repayment schedule generated: loanId={}, installments={}, totalRepayable={}", 
                 loan.getId(), savedRepayments.size(), totalRepayable);
 
-        return savedRepayments.stream()
+        savedRepayments.stream()
                 .map(this::mapToLoanRepaymentResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private List<LoanRepayment> generateFlatInterestSchedule(Loan loan, BigDecimal principal, 

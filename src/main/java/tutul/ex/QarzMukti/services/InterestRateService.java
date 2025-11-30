@@ -83,12 +83,7 @@ public class InterestRateService {
                 .orElse(BigDecimal.valueOf(12.0)); // Default fallback rate
     }
 
-    /**
-     * Get paginated history of system interest rate changes
-     *
-     * @param pageable Pagination parameters
-     * @return Page of interest rate history
-     */
+
     @Transactional(readOnly = true)
     public Page<SystemInterestRateResponse> getSystemInterestRateHistory(Pageable pageable) {
         log.debug("Fetching system interest rate history");
@@ -101,10 +96,8 @@ public class InterestRateService {
     /**
      * Override interest rate for a specific loan (SuperAdmin only)
      * This creates an audit trail entry
-     *
      * @param request Request containing loan ID, new rate, and reason
      * @param admin   The SuperAdmin performing the override
-     * @return Audit record of the change
      */
     @Transactional
     public InterestRateAuditResponse overrideLoanInterestRate(LoanInterestRateOverrideRequest request, User admin) {
