@@ -82,4 +82,27 @@ public class LedgerService {
         LedgerEntry saved = ledgerEntryRepository.save(entry);
         log.info("Ledger entry created: ID={}", saved.getId());
     }
+
+    /**
+     * Helper method to create a loan disbursement ledger entry
+     */
+    @Transactional
+    public void createLoanDisbursementEntry(
+            VirtualFundPool debitPool,
+            VirtualFundPool creditPool,
+            BigDecimal amount,
+            UUID loanId,
+            User performedBy) {
+        
+        recordTransaction(
+                debitPool,
+                creditPool,
+                amount,
+                "LOAN_DISBURSEMENT",
+                loanId,
+                "LOAN",
+                Map.of("description", "Loan disbursed"),
+                performedBy
+        );
+    }
 }

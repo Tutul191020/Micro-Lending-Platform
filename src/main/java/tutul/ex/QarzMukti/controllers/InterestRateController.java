@@ -25,6 +25,7 @@ public class InterestRateController {
 
     private final InterestRateService interestRateService;
     private final UserRepository userRepository;
+    private final tutul.ex.QarzMukti.services.CompleteLoanService completeLoanService;
 
     /**
      * Set or update the system-wide default interest rate
@@ -129,6 +130,29 @@ public class InterestRateController {
         Page<InterestRateAuditResponse> response = interestRateService.getAllInterestRateAudits(pageable);
 
         return ResponseEntity.ok(ApiResponse.successPage(response, "Interest rate audit records retrieved successfully"));
+    }
+
+    /**
+     * Recalculate loan repayment schedule with new interest rate
+     * SuperAdmin only - requires INTEREST:OVERRIDE authority
+     */
+    @PostMapping("/loan/recalculate")
+    @PreAuthorize("hasAuthority('INTEREST:OVERRIDE')")
+    public ResponseEntity<ApiResponse<LoanRecalculationResponse>> recalculateLoanSchedule(
+            @Valid @RequestBody LoanRecalculationRequest request,
+            Authentication authentication) {
+
+        log.info("Recalculating loan schedule for loan: {}", request.getLoanId());
+        User admin = getUserFromAuthentication(authentication);
+
+        LoanRecalculationResponse response = completeLoanService.recalculateLoanSchedule(
+                request.getLoanId(),
+                request.getNewInterestRate(),
+                request.getReason(),
+                admin
+        );
+
+        return ResponseEntity.ok(ApiResponse.success(response, "Loan schedule recalculated successfully"));
     }
 
     /**
