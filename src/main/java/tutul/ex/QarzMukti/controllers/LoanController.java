@@ -101,6 +101,16 @@ public class LoanController {
         return ResponseEntity.ok(ApiResponse.successPage(response, "Loans retrieved successfully"));
     }
 
+    /**
+     * Get all overdue loans (Admin/Accountant/SuperAdmin)
+     */
+    @GetMapping("/overdue")
+    @PreAuthorize("hasAnyAuthority('LOAN:APPROVE', 'LOAN:READ_ALL', 'ROLE_SUPER_ADMIN')")
+    public ResponseEntity<ApiResponse<List<LoanResponse>>> getOverdueLoans() {
+        List<LoanResponse> loans = loanService.getOverdueLoans();
+        return ResponseEntity.ok(ApiResponse.success(loans, "Overdue loans retrieved successfully"));
+    }
+
     private User getUserFromAuthentication(Authentication authentication) {
         return userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + authentication.getName()));

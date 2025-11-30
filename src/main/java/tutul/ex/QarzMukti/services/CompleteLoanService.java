@@ -668,4 +668,13 @@ public class CompleteLoanService {
                 .createdAt(repayment.getCreatedAt())
                 .build();
     }
+    /**
+     * Get all loans that have overdue installments
+     * For Admin/Accountant use
+     */
+    public List<LoanResponse> getOverdueLoans() {
+        return loanRepository.findLoansWithOverdueInstallments().stream()
+                .map(this::mapToLoanResponse)
+                .toList();
+    }
 }

@@ -40,5 +40,14 @@ public interface LoanRepository extends JpaRepository<Loan, UUID> {
     /**
      * Count loans by status
      */
+    /**
+     * Count loans by status
+     */
     long countByStatus(String status);
+
+    /**
+     * Find loans that have at least one overdue repayment
+     */
+    @Query("SELECT DISTINCT l FROM Loan l JOIN LoanRepayment r ON r.loan = l WHERE r.status = 'OVERDUE'")
+    List<Loan> findLoansWithOverdueInstallments();
 }

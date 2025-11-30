@@ -18,7 +18,7 @@ import tutul.ex.QarzMukti.services.PaymentService;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/payments")
+@RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 

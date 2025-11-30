@@ -21,7 +21,6 @@ import java.io.InputStreamReader;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,9 +32,28 @@ public class ReconciliationService {
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final ObjectMapper objectMapper;
 
+    // Configuration for CSV column mapping per provider
+    private static final Map<String, Map<String, String>> PROVIDER_CONFIG = Map.of(
+            "BKASH", Map.of(
+                    "id", "TrxID",
+                    "amount", "Amount",
+                    "status", "Transaction Status"
+            ),
+            "NAGAD", Map.of(
+                    "id", "TxnID",
+                    "amount", "Amount",
+                    "status", "Status"
+            ),
+            "DEFAULT", Map.of(
+                    "id", "GatewayTxId",
+                    "amount", "Amount",
+                    "status", "Status"
+            )
+    );
+
     /**
      * Process a daily settlement report from a payment gateway
-     * Expected CSV format: GatewayTxId,Amount,Status,Date
+     * Supports dynamic CSV formats based on provider
      */
     @Transactional
     public ReconciliationReport processSettlementReport(MultipartFile file, String provider, LocalDate reportDate) {
@@ -49,10 +67,7 @@ public class ReconciliationService {
         report.setCreatedAt(Instant.now());
         
         try {
-            // Store raw content for audit (limit size if needed)
             String content = new String(file.getBytes());
-            // Store as JSON string just to fit the column type, or plain string if column allows
-            // The entity says jsonb, so let's wrap it
             Map<String, String> rawData = new HashMap<>();
             rawData.put("filename", file.getOriginalFilename());
             rawData.put("content_preview", content.substring(0, Math.min(content.length(), 1000)));
@@ -63,20 +78,43 @@ public class ReconciliationService {
 
         reportRepository.save(report);
 
-        // 2. Parse CSV and Match Transactions
+        // 2. Parse CSV and Match Transactions using Dynamic Mapping
         List<ReconciliationResult> results = new ArrayList<>();
+        Map<String, String> config = PROVIDER_CONFIG.getOrDefault(provider.toUpperCase(), PROVIDER_CONFIG.get("DEFAULT"));
         
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-            // Skip header
-            String line = reader.readLine(); 
+            String headerLine = reader.readLine();
+            if (headerLine == null) throw new ValidationException("Empty CSV file");
             
+            // Map header names to column indices
+            String[] headers = headerLine.split(",");
+            Map<String, Integer> headerMap = new HashMap<>();
+            for (int i = 0; i < headers.length; i++) {
+                headerMap.put(headers[i].trim(), i);
+            }
+            
+            // Validate required columns exist
+            String idCol = config.get("id");
+            String amtCol = config.get("amount");
+            String statusCol = config.get("status");
+            
+            if (!headerMap.containsKey(idCol) || !headerMap.containsKey(amtCol) || !headerMap.containsKey(statusCol)) {
+                throw new ValidationException("CSV missing required columns for " + provider + 
+                        ". Expected: " + idCol + ", " + amtCol + ", " + statusCol);
+            }
+            
+            int idIdx = headerMap.get(idCol);
+            int amtIdx = headerMap.get(amtCol);
+            int statusIdx = headerMap.get(statusCol);
+
+            String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
-                if (parts.length < 3) continue;
+                if (parts.length <= Math.max(idIdx, Math.max(amtIdx, statusIdx))) continue;
 
-                String gatewayTxId = parts[0].trim();
-                String amountStr = parts[1].trim();
-                String status = parts[2].trim();
+                String gatewayTxId = parts[idIdx].trim();
+                String amountStr = parts[amtIdx].trim();
+                String status = parts[statusIdx].trim();
 
                 results.add(matchTransaction(report, gatewayTxId, amountStr, status));
             }

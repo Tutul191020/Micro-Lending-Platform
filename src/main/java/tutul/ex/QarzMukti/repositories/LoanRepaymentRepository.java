@@ -23,4 +23,9 @@ public interface LoanRepaymentRepository extends JpaRepository<LoanRepayment, UU
      * Count pending repayments for a loan
      */
     long countByLoanAndStatus(Loan loan, String status);
+
+    /**
+     * Find repayments by status and due date before a certain date
+     */
+    List<LoanRepayment> findByStatusAndDueDateBefore(String status, java.time.LocalDate date);
 }
