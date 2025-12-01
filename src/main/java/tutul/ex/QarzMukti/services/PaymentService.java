@@ -12,7 +12,6 @@ import tutul.ex.QarzMukti.dto.PaymentWebhookRequest;
 import tutul.ex.QarzMukti.entities.*;
 import tutul.ex.QarzMukti.repositories.*;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -27,8 +26,7 @@ public class PaymentService {
     private final MockPaymentGatewayService mockPaymentGatewayService;
     private final LedgerService ledgerService;
     private final TransactionLogService transactionLogService;
-    private final VirtualFundPoolRepository virtualFundPoolRepository;
-    private final UserRepository userRepository;
+
 
     /**
      * Initiate a payment for a loan repayment installment
