@@ -20,7 +20,11 @@ public class PaymentInitiationRequest {
 
     @NotNull(message = "Gateway is required (BKASH, NAGAD)")
     private String gateway;
-    
-    // Optional: if partial payment is allowed in future
+
+    /**
+     * Optional: User can specify custom payment amount for partial payments.
+     * If null, defaults to full remaining amount.
+     * Must be positive (validated in service layer).
+     */
     private BigDecimal amount;
 }
