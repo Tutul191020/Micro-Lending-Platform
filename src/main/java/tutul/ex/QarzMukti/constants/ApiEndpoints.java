@@ -17,7 +17,7 @@ public final class ApiEndpoints {
 
     // ==================== Base Paths ====================
 
-    public static final String API_BASE = "/api";
+    public static final String API_BASE = "/api/v1";
 
     // ==================== Authentication Endpoints ====================
 
