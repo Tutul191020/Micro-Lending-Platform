@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ChangePassword from './pages/auth/ChangePassword';
+import ForgotPassword from './pages/auth/ForgotPassword';
 import BorrowerDashboard from './pages/borrower/Dashboard';
 import PayScreen from './pages/borrower/PayScreen';
 import AdminDashboard from './pages/admin/Dashboard';
@@ -37,6 +38,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/change-password" element={<ChangePassword />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
 
                 {/* Redirect root to login */}
                 <Route path="/" element={<Navigate to="/login" replace />} />

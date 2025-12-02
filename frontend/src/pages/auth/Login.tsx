@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../../services/auth';
 import { Eye, EyeOff } from 'lucide-react';
+import { jwtDecode } from 'jwt-decode';
+import { JwtPayload } from '../../types';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -24,18 +26,24 @@ export default function Login() {
                 passwordHash: formData.password, // Mapping to match type definition
             });
 
+            // Decode token to get user info
+            const decodedUser = jwtDecode<JwtPayload>(response.accessToken);
+
             // Store token and user info
-            localStorage.setItem('token', response.token);
-            localStorage.setItem('user', JSON.stringify(response));
+            localStorage.setItem('token', response.accessToken);
+            localStorage.setItem('user', JSON.stringify(decodedUser));
 
             // Redirect based on role
-            if (response.roles.includes('ADMIN') || response.roles.includes('SUPER_ADMIN')) {
+            if (decodedUser.roles.includes('ADMIN') || decodedUser.roles.includes('SUPER_ADMIN')) {
                 navigate('/admin');
             } else {
                 navigate('/dashboard');
             }
         } catch (err: any) {
             console.error(err);
+            // Clear any invalid tokens that might cause issues
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
             setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
         } finally {
             setLoading(false);
@@ -94,6 +102,12 @@ export default function Login() {
                     >
                         {loading ? 'Logging in...' : 'login'}
                     </button>
+
+                    <div className="text-center text-sm">
+                        <Link to="/forgot-password" className="text-gray-600 hover:text-gray-800 hover:underline">
+                            Forgot Password?
+                        </Link>
+                    </div>
 
                     <div className="text-center text-sm text-gray-600">
                         Don't have an account?{' '}

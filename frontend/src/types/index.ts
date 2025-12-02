@@ -71,12 +71,20 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-    token: string;
-    type: string;
+    accessToken: string;
+    tokenType: string;
+    expiresIn: number;
+}
+
+export interface JwtPayload {
+    sub: string; // username
     id: number;
-    username: string;
     email: string;
     roles: string[];
+    fullName?: string;
+    phone?: string;
+    exp: number;
+    iat: number;
 }
 
 export interface RegisterRequest {
@@ -94,4 +102,27 @@ export interface ApiResponse<T> {
     success: boolean;
     message: string;
     data: T;
+}
+
+// Forgot Password Types
+export interface ForgotPasswordRequest {
+    identifier: string; // email or phone
+}
+
+export interface VerifyOtpRequest {
+    identifier: string;
+    otpCode: string;
+}
+
+export interface ResetPasswordRequest {
+    identifier: string;
+    otpCode: string;
+    newPassword: string;
+    confirmPassword: string;
+}
+
+export interface OtpResponse {
+    message: string;
+    expiresIn: number; // seconds
+    otpSentTo: string; // masked identifier
 }

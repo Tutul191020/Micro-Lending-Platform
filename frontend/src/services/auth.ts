@@ -1,11 +1,18 @@
 import api from './api';
-import { LoginRequest, LoginResponse, RegisterRequest, ApiResponse } from '../types';
+import {
+    LoginRequest,
+    LoginResponse,
+    RegisterRequest,
+    ApiResponse,
+    ForgotPasswordRequest,
+    VerifyOtpRequest,
+    ResetPasswordRequest,
+    OtpResponse,
+    User
+} from '../types';
 
 export const authService = {
     login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-        // The backend expects 'password' not 'passwordHash' in the request body usually
-        // But types.ts defined it as passwordHash to match entity.
-        // Let's assume the API expects { username, password }
         const response = await api.post<ApiResponse<LoginResponse>>('/auth/login', {
             username: credentials.username,
             password: credentials.passwordHash,
@@ -16,9 +23,27 @@ export const authService = {
     register: async (userData: RegisterRequest): Promise<User> => {
         const response = await api.post<ApiResponse<User>>('/auth/register', {
             ...userData,
-            password: userData.passwordHash, // Map passwordHash to password if needed
+            password: userData.passwordHash,
         });
         return response.data.data;
+    },
+
+    forgotPassword: async (identifier: string): Promise<OtpResponse> => {
+        const response = await api.post<ApiResponse<OtpResponse>>('/auth/forgot-password', {
+            identifier
+        });
+        return response.data.data;
+    },
+
+    verifyOtp: async (identifier: string, otpCode: string): Promise<void> => {
+        await api.post<ApiResponse<void>>('/auth/verify-otp', {
+            identifier,
+            otpCode
+        });
+    },
+
+    resetPassword: async (data: ResetPasswordRequest): Promise<void> => {
+        await api.post<ApiResponse<void>>('/auth/reset-password', data);
     },
 
     logout: () => {
