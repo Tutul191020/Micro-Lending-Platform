@@ -6,7 +6,7 @@ import ChangePassword from './pages/auth/ChangePassword';
 import ForgotPassword from './pages/auth/ForgotPassword';
 import BorrowerDashboard from './pages/borrower/Dashboard';
 import PayScreen from './pages/borrower/PayScreen';
-import AdminDashboard from './pages/admin/Dashboard';
+import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
 
 // Simple Protected Route component
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -19,12 +19,12 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
 
     if (allowedRoles) {
         const user = JSON.parse(userStr);
+        // Check if user has any of the allowed roles
         const hasRole = user.roles?.some((role: string) => allowedRoles.includes(role));
-        // Note: Adjust role checking logic based on actual backend response structure
-        // If backend returns roles as array of strings, this works.
-        // If user has no roles or mismatch, redirect to unauthorized or dashboard
-        // For now, let's assume if role check fails, go to dashboard (or login)
-        // if (!hasRole) return <Navigate to="/dashboard" replace />;
+
+        if (!hasRole) {
+            return <Navigate to="/dashboard" replace />;
+        }
     }
 
     return <>{children}</>;
@@ -65,8 +65,8 @@ function App() {
                 <Route
                     path="/admin"
                     element={
-                        <ProtectedRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
-                            <AdminDashboard />
+                        <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_SUPER_USER']}>
+                            <SuperAdminDashboard />
                         </ProtectedRoute>
                     }
                 />

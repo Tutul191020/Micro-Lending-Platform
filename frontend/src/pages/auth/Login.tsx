@@ -34,7 +34,7 @@ export default function Login() {
             localStorage.setItem('user', JSON.stringify(decodedUser));
 
             // Redirect based on role
-            if (decodedUser.roles.includes('ADMIN') || decodedUser.roles.includes('SUPER_ADMIN')) {
+            if (decodedUser.roles.includes('ROLE_ADMIN') || decodedUser.roles.includes('ROLE_SUPER_USER')) {
                 navigate('/admin');
             } else {
                 navigate('/dashboard');
