@@ -459,7 +459,7 @@ public class UserService {
     /**
      * Get the current authenticated user's ID from Spring Security context
      */
-    private Long getCurrentAuthenticatedUserId() {
+    public Long getCurrentAuthenticatedUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new ForbiddenException("No authenticated user found");

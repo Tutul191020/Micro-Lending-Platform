@@ -30,12 +30,20 @@ public final class ApiEndpoints {
         public static final String LOGIN = "/login";
         public static final String REFRESH_TOKEN = "/refresh";
         public static final String LOGOUT = "/logout";
+        public static final String CHANGE_PASSWORD = "/change-password";
+        public static final String FORGOT_PASSWORD = "/forgot-password";
+        public static final String VERIFY_OTP = "/verify-otp";
+        public static final String RESET_PASSWORD = "/reset-password";
 
         // Full paths
         public static final String FULL_REGISTER = BASE + REGISTER;
         public static final String FULL_LOGIN = BASE + LOGIN;
         public static final String FULL_REFRESH_TOKEN = BASE + REFRESH_TOKEN;
         public static final String FULL_LOGOUT = BASE + LOGOUT;
+        public static final String FULL_CHANGE_PASSWORD = BASE + CHANGE_PASSWORD;
+        public static final String FULL_FORGOT_PASSWORD = BASE + FORGOT_PASSWORD;
+        public static final String FULL_VERIFY_OTP = BASE + VERIFY_OTP;
+        public static final String FULL_RESET_PASSWORD = BASE + RESET_PASSWORD;
     }
 
     // ==================== User Endpoints ====================

@@ -39,4 +39,37 @@ public class AuthController {
                         "User registered successfully. Your account is pending verification by admin."),
                 HttpStatus.CREATED);
     }
+
+    @PutMapping(ApiEndpoints.Auth.CHANGE_PASSWORD)
+    public ResponseEntity<ApiResponse<Void>> changePassword(@Valid @RequestBody UserPasswordChangeRequest request) {
+        String userId = String.valueOf(userService.getCurrentAuthenticatedUserId());
+        log.info("Password change request for authenticated user: {}", userId);
+        userService.changePassword(userId, request);
+        log.info("Password changed successfully for user: {}", userId);
+        return new ResponseEntity<>(ApiResponse.success(null, "Password changed successfully"), HttpStatus.OK);
+    }
+
+    @PostMapping(ApiEndpoints.Auth.FORGOT_PASSWORD)
+    public ResponseEntity<ApiResponse<OtpResponse>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        log.info("Forgot password request for identifier: {}", request.getIdentifier());
+        OtpResponse response = authService.initiateForgotPassword(request);
+        log.info("OTP sent successfully for forgot password");
+        return new ResponseEntity<>(ApiResponse.success(response, "OTP sent successfully"), HttpStatus.OK);
+    }
+
+    @PostMapping(ApiEndpoints.Auth.VERIFY_OTP)
+    public ResponseEntity<ApiResponse<Void>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        log.info("OTP verification request for identifier: {}", request.getIdentifier());
+        authService.verifyOtpForReset(request);
+        log.info("OTP verified successfully");
+        return new ResponseEntity<>(ApiResponse.success(null, "OTP verified successfully"), HttpStatus.OK);
+    }
+
+    @PostMapping(ApiEndpoints.Auth.RESET_PASSWORD)
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        log.info("Password reset request for identifier: {}", request.getIdentifier());
+        authService.resetPasswordWithOtp(request);
+        log.info("Password reset successfully");
+        return new ResponseEntity<>(ApiResponse.success(null, "Password reset successfully"), HttpStatus.OK);
+    }
 }
