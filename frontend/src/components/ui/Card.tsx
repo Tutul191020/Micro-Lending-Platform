@@ -42,7 +42,7 @@ export function CardTitle({ className, children, ...props }: CardProps) {
             {...props}
         >
             {children}
-        </div>
+        </h3>
     );
 }
 

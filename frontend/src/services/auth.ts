@@ -4,8 +4,6 @@ import {
     LoginResponse,
     RegisterRequest,
     ApiResponse,
-    ForgotPasswordRequest,
-    VerifyOtpRequest,
     ResetPasswordRequest,
     OtpResponse,
     User
