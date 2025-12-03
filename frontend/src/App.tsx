@@ -7,6 +7,11 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import BorrowerDashboard from './pages/borrower/Dashboard';
 import PayScreen from './pages/borrower/PayScreen';
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
+import TestJwt from './pages/TestJwt';
+import TransactionsPage from './pages/admin/Transactions';
+import UserManagementPage from './pages/admin/UserManagement';
+import TreasuryPage from './pages/admin/Treasury';
+import AuthoritiesPage from './pages/admin/Authorities';
 
 // Simple Protected Route component
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -18,12 +23,21 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
     }
 
     if (allowedRoles) {
-        const user = JSON.parse(userStr);
-        // Check if user has any of the allowed roles
-        const hasRole = user.roles?.some((role: string) => allowedRoles.includes(role));
+        try {
+            const user = JSON.parse(userStr);
+            // Check if user has any of the allowed roles
+            // The roles array contains both authorities and role names
+            const hasRole = Array.isArray(user.roles) &&
+                user.roles.some((role: string) => allowedRoles.includes(role));
 
-        if (!hasRole) {
-            return <Navigate to="/dashboard" replace />;
+            if (!hasRole) {
+                return <Navigate to="/dashboard" replace />;
+            }
+        } catch (error) {
+            console.error('Error parsing user data:', error);
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            return <Navigate to="/login" replace />;
         }
     }
 
@@ -42,6 +56,7 @@ function App() {
 
                 {/* Redirect root to login */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="/test-jwt" element={<TestJwt />} />
 
                 {/* Borrower Routes */}
                 <Route
@@ -67,6 +82,38 @@ function App() {
                     element={
                         <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_SUPER_USER']}>
                             <SuperAdminDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin/transactions"
+                    element={
+                        <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_SUPER_USER']}>
+                            <TransactionsPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin/users"
+                    element={
+                        <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_SUPER_USER']}>
+                            <UserManagementPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin/treasury"
+                    element={
+                        <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_SUPER_USER']}>
+                            <TreasuryPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/admin/authorities"
+                    element={
+                        <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_SUPER_USER']}>
+                            <AuthoritiesPage />
                         </ProtectedRoute>
                     }
                 />

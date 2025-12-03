@@ -14,6 +14,9 @@ api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         if (token) {
+            if (!config.headers) {
+                config.headers = new axios.AxiosHeaders();
+            }
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -23,16 +26,16 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor to handle 401/403
+// Response interceptor to handle errors
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-            // Clear token and redirect to login if needed
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            // window.location.href = '/login'; // Optional: force redirect
-        }
+        // Don't automatically clear tokens on 401/403
+        // Let the components handle authentication errors appropriately
+        // if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        //     localStorage.removeItem('token');
+        //     localStorage.removeItem('user');
+        // }
         return Promise.reject(error);
     }
 );

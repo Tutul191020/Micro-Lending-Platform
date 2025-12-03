@@ -28,9 +28,9 @@ const Sidebar = () => {
         <aside className="w-64 bg-white border-r border-gray-100 min-h-screen flex flex-col fixed left-0 top-0 z-30">
             <div className="p-6 flex items-center gap-3">
                 <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">F</span>
+                    <span className="text-white font-bold text-lg">Q</span>
                 </div>
-                <span className="text-xl font-bold text-gray-900">Finix</span>
+                <span className="text-xl font-bold text-gray-900">Qarz Mukti</span>
             </div>
 
             <nav className="flex-1 px-4 py-6 space-y-2">

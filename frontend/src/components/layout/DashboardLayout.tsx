@@ -7,7 +7,15 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    let user = { fullName: 'User', username: 'admin' };
+    try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            user = JSON.parse(userStr);
+        }
+    } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+    }
 
     return (
         <div className="min-h-screen bg-gray-50 flex">
