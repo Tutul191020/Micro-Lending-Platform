@@ -68,6 +68,10 @@ public class User {
     @Column(name = "onboarding_status", nullable = false, length = 30)
     private tutul.ex.QarzMukti.enums.OnboardingStatus onboardingStatus = tutul.ex.QarzMukti.enums.OnboardingStatus.REGISTERED;
 
+    @Builder.Default
+    @Column(name = "credit_score", nullable = false)
+    private Integer creditScore = 500;
+
     @Column(name = "onboarding_completed_at")
     private OffsetDateTime onboardingCompletedAt;
 

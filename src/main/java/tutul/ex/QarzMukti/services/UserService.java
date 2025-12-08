@@ -183,7 +183,7 @@ public class UserService {
 
         Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(user.getId());
         log.info("User verification completed: {} with status: {}", user.getId(), request.getStatus());
-        return mapToUserResponse(user,authorities);
+        return mapToUserResponse(user, authorities);
     }
 
     @Transactional(readOnly = true)
@@ -228,7 +228,7 @@ public class UserService {
         Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(Long.valueOf(userId));
 
         log.info("User updated successfully: {}", userId);
-        return mapToUserResponse(user,authorities);
+        return mapToUserResponse(user, authorities);
     }
 
     /**
@@ -308,7 +308,7 @@ public class UserService {
         Set<Authority> allAuthorities = userAuthorityRepository.findAllUserAuthorities(user.getId());
 
         log.info("Authorities assigned successfully to user: {}", request.getUserId());
-        return mapToUserResponse(user,allAuthorities);
+        return mapToUserResponse(user, allAuthorities);
     }
 
     /**
@@ -354,17 +354,17 @@ public class UserService {
     @Transactional(readOnly = true)
     public OnboardingStatusResponse getOnboardingStatus(Long userId) {
         log.info("Getting onboarding status for user: {}", userId);
-        
+
         User user = findUserOrThrow(String.valueOf(userId));
         UserDocuments documents = userDocumentsRepository.findByUserId(userId).orElse(null);
-        
+
         // Calculate document completion status
         OnboardingStatusResponse.DocumentCompletionStatus docStatus = calculateDocumentCompletionStatus(documents);
-        
+
         // Check loan eligibility
         boolean isEligible = checkLoanEligibility(userId);
         String eligibilityMessage = buildEligibilityMessage(user, isEligible);
-        
+
         return OnboardingStatusResponse.builder()
                 .userId(user.getId())
                 .username(user.getUsername())
@@ -383,26 +383,26 @@ public class UserService {
     @Transactional
     public UserResponse completeOnboarding(Long userId) {
         log.info("Completing onboarding for user: {}", userId);
-        
+
         User user = findUserOrThrow(String.valueOf(userId));
         UserDocuments documents = userDocumentsRepository.findByUserId(userId)
                 .orElseThrow(() -> new ValidationException("No documents found for user"));
-        
+
         // Validate all documents are uploaded
         if (!areAllDocumentsUploaded(documents)) {
             throw new ValidationException("Cannot complete onboarding. All required documents must be uploaded.");
         }
-        
+
         // Update onboarding status
         user.setOnboardingStatus(OnboardingStatus.ONBOARDING_COMPLETED);
         user.setOnboardingCompletedAt(OffsetDateTime.now());
         user.setUpdatedAt(OffsetDateTime.now());
         user = userRepository.save(user);
-        
+
         Set<Authority> authorities = userAuthorityRepository.findAllUserAuthorities(userId);
-        
+
         log.info("Onboarding completed for user: {}", userId);
-        return mapToUserResponse(user,authorities);
+        return mapToUserResponse(user, authorities);
     }
 
     /**
@@ -411,7 +411,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public Boolean checkLoanEligibility(Long userId) {
         User user = findUserOrThrow(String.valueOf(userId));
-        
+
         return user.getOnboardingStatus() == OnboardingStatus.ONBOARDING_COMPLETED
                 && "APPROVED".equals(user.getVerificationStatus())
                 && user.getVerified()
@@ -424,19 +424,19 @@ public class UserService {
     @Transactional(readOnly = true)
     public LoanEligibilityResponse getLoanEligibility(Long userId) {
         log.info("Checking loan eligibility for user: {}", userId);
-        
+
         User user = findUserOrThrow(String.valueOf(userId));
         UserDocuments documents = userDocumentsRepository.findByUserId(userId).orElse(null);
-        
+
         boolean onboardingCompleted = user.getOnboardingStatus() == OnboardingStatus.ONBOARDING_COMPLETED;
         boolean documentsUploaded = areAllDocumentsUploaded(documents);
         boolean adminVerified = "APPROVED".equals(user.getVerificationStatus()) && user.getVerified();
         boolean accountEnabled = user.getEnabled();
-        
+
         boolean isEligible = onboardingCompleted && adminVerified && accountEnabled;
-        
+
         String message = buildEligibilityMessage(user, isEligible);
-        
+
         LoanEligibilityResponse.EligibilityDetails details = LoanEligibilityResponse.EligibilityDetails.builder()
                 .onboardingCompleted(onboardingCompleted)
                 .documentsUploaded(documentsUploaded)
@@ -445,7 +445,7 @@ public class UserService {
                 .currentOnboardingStatus(user.getOnboardingStatus().name())
                 .currentVerificationStatus(user.getVerificationStatus())
                 .build();
-        
+
         return LoanEligibilityResponse.builder()
                 .userId(user.getId())
                 .isEligible(isEligible)
@@ -537,6 +537,7 @@ public class UserService {
                 .onboardingStatus(user.getOnboardingStatus())
                 .onboardingCompletedAt(user.getOnboardingCompletedAt())
                 .isEligibleForLoan(checkLoanEligibility(user.getId()))
+                .creditScore(user.getCreditScore() != null ? user.getCreditScore() : 500)
                 .authorities(authorities.stream()
                         .map(authority -> AuthorityResponse.builder()
                                 .id(authority.getId())
@@ -574,10 +575,10 @@ public class UserService {
     private void updateOnboardingStatusBasedOnDocuments(User user, UserDocuments documents) {
         OnboardingStatus currentStatus = user.getOnboardingStatus();
         OnboardingStatus newStatus = currentStatus;
-        
+
         boolean allDocsUploaded = areAllDocumentsUploaded(documents);
         boolean anyDocUploaded = isAnyDocumentUploaded(documents);
-        
+
         // Determine new status based on document completion
         if (allDocsUploaded) {
             // All documents uploaded - automatically complete onboarding
@@ -589,13 +590,13 @@ public class UserService {
             // At least one document uploaded - move to pending
             newStatus = OnboardingStatus.DOCUMENTS_PENDING;
         }
-        
+
         // Update status if changed
         if (newStatus != currentStatus) {
             user.setOnboardingStatus(newStatus);
             user.setUpdatedAt(OffsetDateTime.now());
             userRepository.save(user);
-            log.info("Updated onboarding status for user {} from {} to {}", 
+            log.info("Updated onboarding status for user {} from {} to {}",
                     user.getId(), currentStatus, newStatus);
         }
     }
@@ -607,8 +608,8 @@ public class UserService {
         if (documents == null) {
             return false;
         }
-        return documents.getNationalIdDocumentPath() != null 
-                && documents.getElectricityBillDocumentPath() != null 
+        return documents.getNationalIdDocumentPath() != null
+                && documents.getElectricityBillDocumentPath() != null
                 && documents.getProfilePhotoPath() != null;
     }
 
@@ -619,8 +620,8 @@ public class UserService {
         if (documents == null) {
             return false;
         }
-        return documents.getNationalIdDocumentPath() != null 
-                || documents.getElectricityBillDocumentPath() != null 
+        return documents.getNationalIdDocumentPath() != null
+                || documents.getElectricityBillDocumentPath() != null
                 || documents.getProfilePhotoPath() != null;
     }
 
@@ -629,18 +630,18 @@ public class UserService {
      */
     private OnboardingStatusResponse.DocumentCompletionStatus calculateDocumentCompletionStatus(
             UserDocuments documents) {
-        
+
         boolean nationalIdUploaded = documents != null && documents.getNationalIdDocumentPath() != null;
         boolean electricityBillUploaded = documents != null && documents.getElectricityBillDocumentPath() != null;
         boolean profilePhotoUploaded = documents != null && documents.getProfilePhotoPath() != null;
-        
+
         int totalRequired = 3;
-        int totalUploaded = (nationalIdUploaded ? 1 : 0) 
-                + (electricityBillUploaded ? 1 : 0) 
+        int totalUploaded = (nationalIdUploaded ? 1 : 0)
+                + (electricityBillUploaded ? 1 : 0)
                 + (profilePhotoUploaded ? 1 : 0);
-        
+
         double completionPercentage = (totalUploaded * 100.0) / totalRequired;
-        
+
         return OnboardingStatusResponse.DocumentCompletionStatus.builder()
                 .nationalIdUploaded(nationalIdUploaded)
                 .electricityBillUploaded(electricityBillUploaded)
@@ -658,20 +659,44 @@ public class UserService {
         if (isEligible) {
             return "You are eligible to apply for loans.";
         }
-        
+
         // Provide specific reason for ineligibility
         if (user.getOnboardingStatus() != OnboardingStatus.ONBOARDING_COMPLETED) {
             return "Please complete your onboarding by uploading all required documents.";
         }
-        
+
         if (!"APPROVED".equals(user.getVerificationStatus()) || !user.getVerified()) {
             return "Your account is pending admin verification. Please wait for approval.";
         }
-        
+
         if (!user.getEnabled()) {
             return "Your account is disabled. Please contact support.";
         }
-        
+
         return "You are not eligible to apply for loans at this time.";
+    }
+
+    /**
+     * Update user's credit score
+     * 
+     * @param user   The user to update
+     * @param points Points to add (positive) or subtract (negative)
+     */
+    @Transactional
+    public void updateCreditScore(User user, int points) {
+        int currentScore = user.getCreditScore() != null ? user.getCreditScore() : 500;
+        int newScore = currentScore + points;
+
+        // Enforce limits (300 - 850)
+        if (newScore > 850)
+            newScore = 850;
+        if (newScore < 300)
+            newScore = 300;
+
+        user.setCreditScore(newScore);
+        userRepository.save(user);
+
+        log.info("Updated credit score for user {}: {} -> {} (Change: {})",
+                user.getId(), currentScore, newScore, points);
     }
 }

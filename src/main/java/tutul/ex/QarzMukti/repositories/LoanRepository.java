@@ -14,29 +14,29 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface LoanRepository extends JpaRepository<Loan, UUID> {
-    
+
     /**
      * Find all loans for a specific user
      */
     List<Loan> findByUserOrderByCreatedAtDesc(User user);
-    
+
     /**
      * Find loans by status (paginated)
      */
     Page<Loan> findByStatusOrderByCreatedAtDesc(String status, Pageable pageable);
-    
+
     /**
      * Find loans by user and status
      */
     List<Loan> findByUserAndStatus(User user, String status);
-    
+
     /**
      * Find loan with pessimistic lock for update operations
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT l FROM Loan l WHERE l.id = :id")
     Optional<Loan> findByIdForUpdate(UUID id);
-    
+
     /**
      * Count loans by status
      */
@@ -50,4 +50,9 @@ public interface LoanRepository extends JpaRepository<Loan, UUID> {
      */
     @Query("SELECT DISTINCT l FROM Loan l JOIN LoanRepayment r ON r.loan = l WHERE r.status = 'OVERDUE'")
     List<Loan> findLoansWithOverdueInstallments();
+
+    /**
+     * Count loans by user and status list
+     */
+    long countByUserAndStatusIn(User user, java.util.Collection<String> statuses);
 }

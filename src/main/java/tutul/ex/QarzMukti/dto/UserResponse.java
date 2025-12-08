@@ -24,6 +24,7 @@ public class UserResponse {
     private tutul.ex.QarzMukti.enums.OnboardingStatus onboardingStatus;
     private OffsetDateTime onboardingCompletedAt;
     private Boolean isEligibleForLoan;
+    private Integer creditScore;
     private Set<AuthorityResponse> authorities;
     private OffsetDateTime createdAt;
 

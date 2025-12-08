@@ -29,6 +29,7 @@ public class PaymentService {
     private final LedgerService ledgerService;
     private final TransactionLogService transactionLogService;
     private final PaymentAllocationService paymentAllocationService;
+    private final UserService userService;
 
     /**
      * Initiate a payment for a loan repayment installment
@@ -142,6 +143,9 @@ public class PaymentService {
         }
 
         loanRepaymentRepository.save(repayment);
+
+        // Deduct credit score for overdue
+        userService.updateCreditScore(repayment.getLoan().getUser(), -20);
     }
 
     /**
@@ -197,8 +201,13 @@ public class PaymentService {
         long partialCount = loanRepaymentRepository.countByLoanAndStatus(loan, "PARTIALLY_PAID");
         if (pendingCount == 0 && partialCount == 0) {
             loan.setStatus("FULLY_PAID");
+            // Bonus for loan completion
+            userService.updateCreditScore(loan.getUser(), 50);
         }
         loanRepository.save(loan);
+
+        // Add credit score for on-time payment
+        userService.updateCreditScore(loan.getUser(), 10);
 
         // 4. Ledger Entry (Credit Accountant/Lender)
         ledgerService.createLoanRepaymentEntry(
