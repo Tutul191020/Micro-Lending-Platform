@@ -41,3 +41,4 @@ dist/
 .env
 .env.local
 *.log
+docker-compose.override.yml
