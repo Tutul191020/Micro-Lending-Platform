@@ -131,9 +131,11 @@ export default function SuperAdminDashboard() {
                                 </h2>
                             </div>
                         </div>
+                    </div>
+                </div>
 
-                        {/* Quick Actions */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {/* Quick Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                             {/* Authority Management */}
                             <a
                                 href="/admin/authorities"
@@ -167,8 +169,6 @@ export default function SuperAdminDashboard() {
                                     <ArrowRight className="text-gray-400 group-hover:text-teal-600 group-hover:translate-x-1 transition-all" size={20} />
                                 </div>
                             </a>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Pending Fund Requests Table */}
