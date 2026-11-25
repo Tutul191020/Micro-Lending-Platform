@@ -25,9 +25,9 @@ allocation as a first-class domain problem instead of an afterthought.
 
 ## Screenshots
 
-<!-- screenshots:start -->
-_Coming soon — run `docker compose up --build` and log in with the demo account below._
-<!-- screenshots:end -->
+| Super Admin dashboard | Treasury management |
+|---|---|
+| ![Super Admin dashboard](docs/screenshots/dashboard.png) | ![Treasury management](docs/screenshots/treasury.png) |
 
 ## Features
 
