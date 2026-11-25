@@ -25,7 +25,7 @@ import tutul.ex.QarzMukti.features.reconciliation.TransactionLogService;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/treasury")
+@RequestMapping("/api/v1/treasury")
 @RequiredArgsConstructor
 public class TreasuryController {
 
@@ -42,12 +42,12 @@ public class TreasuryController {
     public ResponseEntity<ApiResponse<FundPoolResponse>> mintFund(
             @RequestBody TreasuryMintRequest request,
             Authentication authentication) {
-        
+
         log.info("Mint fund request received: Amount={}", request.getAmount());
         User admin = getUserFromAuthentication(authentication);
-        
+
         FundPoolResponse response = treasuryService.mintFund(request, admin);
-        
+
         return ResponseEntity.ok(ApiResponse.success(response, "Funds minted successfully"));
     }
 
@@ -60,13 +60,13 @@ public class TreasuryController {
     public ResponseEntity<ApiResponse<FundPoolResponse>> allocateFund(
             @RequestBody FundAllocationRequest request,
             Authentication authentication) {
-        
-        log.info("Fund allocation request received: AccountantId={}, Amount={}", 
+
+        log.info("Fund allocation request received: AccountantId={}, Amount={}",
                 request.getAccountantId(), request.getAmount());
         User admin = getUserFromAuthentication(authentication);
-        
+
         FundPoolResponse response = treasuryService.allocateFundToAccountant(request, admin);
-        
+
         return ResponseEntity.ok(ApiResponse.success(response, "Funds allocated successfully"));
     }
 
@@ -78,12 +78,25 @@ public class TreasuryController {
     @PreAuthorize("hasAuthority('FUND:READ')")
     public ResponseEntity<ApiResponse<FundPoolResponse>> getBalance(Authentication authentication) {
         User user = getUserFromAuthentication(authentication);
-        
+
         FundPoolResponse response = treasuryService.getUserFundPool(user);
-        
+
         return ResponseEntity.ok(ApiResponse.success(response, "Fund pool retrieved successfully"));
     }
 
+    /**
+     * Get the accountant's fund pool balance with additional stats.
+     * Requires FUND:READ authority.
+     */
+    @GetMapping("/accountant/balance")
+    @PreAuthorize("hasAuthority('FUND:READ')")
+    public ResponseEntity<ApiResponse<FundPoolResponse>> getAccountantBalance(Authentication authentication) {
+        User user = getUserFromAuthentication(authentication);
+
+        FundPoolResponse response = treasuryService.getAccountantFundPool(user);
+
+        return ResponseEntity.ok(ApiResponse.success(response, "Fund pool retrieved successfully"));
+    }
 
     private User getUserFromAuthentication(Authentication authentication) {
         return userRepository.findByUsername(authentication.getName())
@@ -100,12 +113,12 @@ public class TreasuryController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication) {
-        
+
         User user = getUserFromAuthentication(authentication);
         Pageable pageable = PageRequest.of(page, size);
-        
+
         Page<TransactionLogResponse> response = transactionLogService.getTransactionHistory(user.getId(), pageable);
-        
+
         return ResponseEntity.ok(ApiResponse.successPage(response, "Transaction history retrieved successfully"));
     }
 

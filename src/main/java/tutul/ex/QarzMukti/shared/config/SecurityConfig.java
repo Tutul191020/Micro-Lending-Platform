@@ -50,6 +50,13 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/v1/payments/webhook").permitAll() // Payment
                                                                                                          // gateway
                                                                                                          // callbacks
+                                                .requestMatchers("/api/v1/authorities/**").permitAll() // Authorities
+                                                                                                       // endpoints
+                                                                                                       // (temporary for
+                                                                                                       // testing)
+                                                .requestMatchers("/api/v1/users/search").permitAll() // User search
+                                                                                                     // (temporary for
+                                                                                                     // testing)
                                                 // All other endpoints require authentication
                                                 .anyRequest().authenticated())
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

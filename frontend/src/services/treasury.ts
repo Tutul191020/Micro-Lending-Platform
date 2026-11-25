@@ -14,6 +14,12 @@ export interface TreasuryMintRequest {
     description: string;
 }
 
+export interface AccountantFundPoolResponse extends FundPoolResponse {
+    totalDisbursed: number;
+    activeLoans: number;
+    overdueLoans: number;
+}
+
 export const treasuryService = {
     mintFund: async (data: TreasuryMintRequest): Promise<FundPoolResponse> => {
         const response = await api.post<ApiResponse<FundPoolResponse>>('/treasury/mint', data);
@@ -22,6 +28,11 @@ export const treasuryService = {
 
     getBalance: async (): Promise<FundPoolResponse> => {
         const response = await api.get<ApiResponse<FundPoolResponse>>('/treasury/balance');
+        return response.data.data;
+    },
+
+    getAccountantBalance: async (): Promise<AccountantFundPoolResponse> => {
+        const response = await api.get<ApiResponse<AccountantFundPoolResponse>>('/treasury/accountant/balance');
         return response.data.data;
     },
 };

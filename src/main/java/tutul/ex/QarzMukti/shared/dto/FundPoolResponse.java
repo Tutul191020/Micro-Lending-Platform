@@ -18,4 +18,13 @@ public class FundPoolResponse {
     private String username;
     private BigDecimal balance;
     private String currency;
+    
+    @Builder.Default
+    private BigDecimal totalDisbursed = BigDecimal.ZERO;
+    
+    @Builder.Default
+    private Integer activeLoans = 0;
+    
+    @Builder.Default
+    private Integer overdueLoans = 0;
 }

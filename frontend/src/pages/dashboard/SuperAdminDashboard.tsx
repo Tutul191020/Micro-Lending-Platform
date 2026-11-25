@@ -6,6 +6,8 @@ import {
     Clock,
     User,
     DollarSign,
+    Shield,
+    ArrowRight,
 } from 'lucide-react';
 import { fundService, FundRequestResponse } from '../../services/fund';
 import { treasuryService, FundPoolResponse } from '../../services/treasury';
@@ -128,6 +130,43 @@ export default function SuperAdminDashboard() {
                                     ৳{pendingRequests.reduce((sum, req) => sum + Number(req.amount), 0).toLocaleString()}
                                 </h2>
                             </div>
+                        </div>
+
+                        {/* Quick Actions */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            {/* Authority Management */}
+                            <a
+                                href="/admin/authorities"
+                                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow group"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="p-4 bg-purple-50 rounded-xl group-hover:bg-purple-100 transition-colors">
+                                        <Shield className="text-purple-600" size={32} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-1">Authority Management</h3>
+                                        <p className="text-gray-600 text-sm">Manage user permissions and authorities</p>
+                                    </div>
+                                    <ArrowRight className="text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" size={20} />
+                                </div>
+                            </a>
+
+                            {/* Treasury Management */}
+                            <a
+                                href="/admin/treasury"
+                                className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow group"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="p-4 bg-teal-50 rounded-xl group-hover:bg-teal-100 transition-colors">
+                                        <Wallet className="text-teal-600" size={32} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-1">Treasury Management</h3>
+                                        <p className="text-gray-600 text-sm">Mint funds and manage treasury</p>
+                                    </div>
+                                    <ArrowRight className="text-gray-400 group-hover:text-teal-600 group-hover:translate-x-1 transition-all" size={20} />
+                                </div>
+                            </a>
                         </div>
                     </div>
                 </div>

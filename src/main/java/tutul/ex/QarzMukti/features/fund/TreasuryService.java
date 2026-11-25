@@ -180,6 +180,21 @@ public class TreasuryService {
         return mapToFundPoolResponse(pool);
     }
 
+    /**
+     * Get the balance and stats for an accountant's fund pool.
+     */
+    @Transactional
+    public FundPoolResponse getAccountantFundPool(User accountant) {
+        VirtualFundPool pool = getOrCreatePool(accountant);
+        FundPoolResponse response = mapToFundPoolResponse(pool);
+        
+        // Calculate additional stats for accountants
+        // This would ideally query loan tables for disbursed amounts, active loans, etc.
+        // For now, we return zeros - you can enhance this with actual loan queries
+        
+        return response;
+    }
+
     private FundPoolResponse mapToFundPoolResponse(VirtualFundPool pool) {
         return FundPoolResponse.builder()
                 .poolId(pool.getId())

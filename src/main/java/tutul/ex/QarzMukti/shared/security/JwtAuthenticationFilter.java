@@ -56,6 +56,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
+     * Skip JWT authentication for public endpoints
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return path.startsWith("/api/v1/auth/") ||
+                path.startsWith("/api/auth/") ||
+                path.equals("/api/v1/payments/webhook") ||
+                path.startsWith("/api/v1/authorities/") ||
+                path.equals("/api/v1/users/search");
+    }
+
+    /**
      * Extract JWT token from Authorization header.
      * Expected format: "Bearer <token>"
      */

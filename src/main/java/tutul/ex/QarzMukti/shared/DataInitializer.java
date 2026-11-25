@@ -1,4 +1,4 @@
-package tutul.ex.QarzMukti.services;
+package tutul.ex.QarzMukti.shared;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

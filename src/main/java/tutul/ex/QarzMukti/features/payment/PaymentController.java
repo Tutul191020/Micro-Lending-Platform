@@ -14,7 +14,6 @@ import tutul.ex.QarzMukti.shared.dto.PaymentInitiationResponse;
 import tutul.ex.QarzMukti.shared.dto.PaymentWebhookRequest;
 import tutul.ex.QarzMukti.shared.entities.User;
 import tutul.ex.QarzMukti.shared.repositories.UserRepository;
-import tutul.ex.QarzMukti.features.payment.PaymentService;
 
 @Slf4j
 @RestController

@@ -15,6 +15,11 @@ export interface FundRequestResponse {
     createdAt: string;
 }
 
+export interface FundRequestCreateRequest {
+    amount: number;
+    reason: string;
+}
+
 export interface FundRequestReviewRequest {
     comments: string;
 }
@@ -22,6 +27,16 @@ export interface FundRequestReviewRequest {
 export const fundService = {
     getPendingRequests: async (page: number = 0, size: number = 10): Promise<PageResponse<FundRequestResponse>> => {
         const response = await api.get<ApiResponse<PageResponse<FundRequestResponse>>>(`/fund-requests?status=PENDING&page=${page}&size=${size}`);
+        return response.data.data;
+    },
+
+    getMyRequests: async (page: number = 0, size: number = 10): Promise<PageResponse<FundRequestResponse>> => {
+        const response = await api.get<ApiResponse<PageResponse<FundRequestResponse>>>(`/fund-requests/my-requests?page=${page}&size=${size}`);
+        return response.data.data;
+    },
+
+    createFundRequest: async (data: FundRequestCreateRequest): Promise<FundRequestResponse> => {
+        const response = await api.post<ApiResponse<FundRequestResponse>>('/fund-requests', data);
         return response.data.data;
     },
 

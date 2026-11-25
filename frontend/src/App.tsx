@@ -7,14 +7,15 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import BorrowerDashboard from './pages/borrower/Dashboard';
 import PayScreen from './pages/borrower/PayScreen';
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
+import AccountantDashboard from './pages/accountant/Dashboard';
 import TestJwt from './pages/TestJwt';
 import TransactionsPage from './pages/admin/Transactions';
 import UserManagementPage from './pages/admin/UserManagement';
 import TreasuryPage from './pages/admin/Treasury';
-import AuthoritiesPage from './pages/admin/Authorities';
+import AuthorityManagement from './pages/admin/AuthorityManagement';
 
 // Simple Protected Route component
-const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
+const ProtectedRoute = ({ children, allowedRoles, redirectPath }: { children: React.ReactNode, allowedRoles?: string[], redirectPath?: string }) => {
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
 
@@ -31,7 +32,13 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
                 user.roles.some((role: string) => allowedRoles.includes(role));
 
             if (!hasRole) {
-                return <Navigate to="/dashboard" replace />;
+                // Redirect to appropriate dashboard based on user's role
+                if (user.roles.includes('ROLE_SUPER_USER') || user.roles.includes('ROLE_ADMIN')) {
+                    return <Navigate to="/admin" replace />;
+                } else if (user.roles.includes('ROLE_ACCOUNTANT')) {
+                    return <Navigate to="/accountant" replace />;
+                }
+                return <Navigate to={redirectPath || "/dashboard"} replace />;
             }
         } catch (error) {
             console.error('Error parsing user data:', error);
@@ -76,6 +83,16 @@ function App() {
                     }
                 />
 
+                {/* Accountant Routes */}
+                <Route
+                    path="/accountant"
+                    element={
+                        <ProtectedRoute allowedRoles={['ROLE_ACCOUNTANT']}>
+                            <AccountantDashboard />
+                        </ProtectedRoute>
+                    }
+                />
+
                 {/* Admin Routes */}
                 <Route
                     path="/admin"
@@ -113,7 +130,7 @@ function App() {
                     path="/admin/authorities"
                     element={
                         <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_SUPER_USER']}>
-                            <AuthoritiesPage />
+                            <AuthorityManagement />
                         </ProtectedRoute>
                     }
                 />
