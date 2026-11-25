@@ -4,7 +4,6 @@ import {
     XCircle,
     Clock,
     User,
-    DollarSign,
     TrendingUp,
     AlertCircle,
     FileText,
